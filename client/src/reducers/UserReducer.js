@@ -17,7 +17,8 @@ export default (state = userInitialState, action) => {
         case ACTION.AUTH_REJECTED_FROM_SERVER:
             return {
                 ...state,
-                isUserAuthenticated: false
+                isUserAuthenticated: false,
+                hasCheckedServerAuth: true
             };
         case ACTION.AUTHENTICATED_WITH_SERVER:
             return {

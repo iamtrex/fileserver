@@ -44,10 +44,9 @@ const attemptDownloadFile = (dispatch, file) => {
     });
 
     downloadFile(file).then((result) => {
-        console.log(result);
         dispatch({
             type: ACTION.END_DOWNLOAD_FILE_SUCCESS
-        })
+        });
     }).catch((error) => {
         if (error === NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING) {
             dispatch({
@@ -55,14 +54,14 @@ const attemptDownloadFile = (dispatch, file) => {
                 payload: {
                     error: error
                 }
-            })
+            });
         } else {
             dispatch({
                 type: ACTION.END_DOWNLOAD_FILE_FAIL,
                 payload: {
                     error: error
                 }
-            })
+            });
         }
 
     });
@@ -88,12 +87,14 @@ export const tryLogin = (user, pass) => {
             type: ACTION.BEGIN_LOGIN
         });
 
-        login(user, pass).then(
+        login(user, pass).then(() => {
             dispatch({
                 type: ACTION.AUTHENTICATED_WITH_SERVER
-            })
-        ).catch((error) => {
-
+            });
+        }).catch((error) => {
+            dispatch({
+                type: ACTION.AUTH_REJECTED_FROM_SERVER
+            });
         });
     }
 };
@@ -104,12 +105,14 @@ export const checkSession = () => {
             type: ACTION.BEGIN_CHECK_AUTHENTICATION_WITH_SERVER
         });
 
-        checkServerSession().then(
+        checkServerSession().then(() => {
             dispatch({
                 type: ACTION.AUTHENTICATED_WITH_SERVER
+            });
+        }).catch((error) => {
+            dispatch({
+                type: ACTION.AUTH_REJECTED_FROM_SERVER
             })
-        ).catch((error) => {
-
         });
     }
 };

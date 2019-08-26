@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,10 +34,12 @@ public class FileBrowserService {
     public Response getFile(String filePath) {
         LOGGER.info("Getting file with path - " + filePath);
 
-        if (!filePath.startsWith(root)) {
-            LOGGER.severe("Doesn't start with root, might be trolling");
-        }
         File file = new File(filePath);
+        if (!file.getPath().startsWith(root)) {
+            LOGGER.severe("Doesn't start with root, might be trolling");
+            return Response.status(401, "User does not have authorization to download from this address").build();
+        }
+
 
         if (file.exists()) {
             return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
@@ -44,7 +47,7 @@ public class FileBrowserService {
                     .header("Content-Length", String.valueOf(file.length()))
                     .build();
         } else {
-            return Response.status(404).build();
+            return Response.status(404, "File was not found").build();
         }
     }
 
@@ -69,7 +72,7 @@ public class FileBrowserService {
             LOGGER.info("Here");
             try {
                 Files.list(Paths.get(path))
-                        .map(p -> convertToObject(p))
+                        .map(this::convertToObject)
                         .forEach(filesArray::add);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -90,7 +93,7 @@ public class FileBrowserService {
         object.addProperty("type", file.isFile() ? "file" : "folder");
 
         path = path.replace("\\", "/");
-        object.addProperty("pathUrl", URLEncoder.encode(path, Charset.forName("UTF-8")));
+        object.addProperty("pathUrl", URLEncoder.encode(path, StandardCharsets.UTF_8));
 
         if (file.isFile()) {
             String size = String.valueOf(file.length());
