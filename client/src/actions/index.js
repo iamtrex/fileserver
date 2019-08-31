@@ -5,7 +5,7 @@ export const loadRootDirectory = () => {
     return (dispatch) => {
         loadDirectory(dispatch, "/");
     }
-}
+};
 
 const loadDirectory = (dispatch, pathUrl) => {
     dispatch({
@@ -37,7 +37,7 @@ const loadDirectory = (dispatch, pathUrl) => {
             })
         }
     });
-}
+};
 
 const attemptDownloadFile = (dispatch, file) => {
     dispatch({

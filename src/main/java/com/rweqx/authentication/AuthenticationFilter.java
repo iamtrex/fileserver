@@ -93,6 +93,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             LocalDateTime date = LocalDateTime.now().plus(LOGIN_DURATION, ChronoUnit.MINUTES);
 
             session.setAttribute("authentication-expiry-date", date);
+        } else {
+            System.out.println("Somehow already has a session!!!");
         }
     }
 
@@ -113,10 +115,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         // TODO have this actually map to a user's valid auth token and check rolesSet
         boolean valid = value.equals("AUTH!") && date.isAfter(LocalDateTime.now());
         if (!valid) {
-            // Wipe session tokens from client.
-            session.removeAttribute("authentication-token");
-            session.removeAttribute("authentication-user");
-            session.removeAttribute("authentication-expiry-date");
+            // Invalidate the session officially.
+            session.invalidate();
         }
 
         System.out.println("Session will last until: " + date.toString());

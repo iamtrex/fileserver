@@ -23,7 +23,7 @@ class FileBrowser extends Component {
                     description: file.size ? "Size: " + file.size : ""
                 },
                 image: {
-                    src: "data:image/png;base64," + file.thumbnail
+                    src: file.thumbnail ? "data:image/png;base64," + file.thumbnail : null
                 },
                 onClick: e => this.props.clickFile(file)
 

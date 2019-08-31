@@ -41,7 +41,7 @@ export const login = (user, pass) => {
                 'Authorization': 'Basic ' + btoa(user + ':' + pass),
             },
             url: "rest/login",
-            success: (result) => {
+            success: () => {
                 resolve();
             },
             error: response => handleError(reject, response)
@@ -77,7 +77,7 @@ export const checkServerSession = () => {
             type: "GET",
             headers: {},
             url: "rest/login",
-            success: (result) => {
+            success: () => {
                 resolve();
             },
             error: response => handleError(reject, response)

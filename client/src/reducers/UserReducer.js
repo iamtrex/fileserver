@@ -32,12 +32,16 @@ export default (state = userInitialState, action) => {
             return {
                 ...state,
                 isUserAuthenticated: false,
-                hasCheckedServerAuth: true
+                hasCheckedServerAuth: true,
+                username: "",
+                password: ""
             };
         case ACTION.AUTHENTICATED_WITH_SERVER:
             return {
                 ...state,
-                isUserAuthenticated: true
+                isUserAuthenticated: true,
+                username: "",
+                password: ""
             };
         case ACTION.BEGIN_CHECK_AUTHENTICATION_WITH_SERVER:
             return {
