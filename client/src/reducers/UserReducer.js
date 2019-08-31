@@ -1,9 +1,23 @@
-
 import {ACTION} from "../Constants";
 import userInitialState from "../state/UserInitialState"
 
 export default (state = userInitialState, action) => {
     switch (action.type) {
+        case ACTION.SIGNUP_USER_CHANGED:
+            return {
+                ...state,
+                signupUsername: action.payload.value
+            };
+        case ACTION.SIGNUP_PASS_CHANGED:
+            return {
+                ...state,
+                signupPassword: action.payload.value
+            };
+        case ACTION.SIGNUP_CONFIRM_PASS_CHANGED:
+            return {
+                ...state,
+                signupConfirmPassword: action.payload.value
+            };
         case ACTION.USER_CHANGED:
             return {
                 ...state,

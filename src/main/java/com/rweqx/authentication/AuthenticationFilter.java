@@ -1,8 +1,11 @@
 package com.rweqx.authentication;
 
+import com.rweqx.sql.SecureStore;
+
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -15,11 +18,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 
 @Provider
 public class AuthenticationFilter implements ContainerRequestFilter {
+
+    private final int LOGIN_DURATION = 10; //Minutes.
+
+    @Inject
+    private SecureStore secureStore;
 
     @Context
     private ResourceInfo resourceInfo;
@@ -58,11 +67,33 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return;
         } else if (hasValidBasicAuthentication(requestContext, rolesSet)) {
             System.out.println("Authenticated with Username and Password");
+
+            setSession(requestContext);
             return;
         }
 
         System.out.println("Aborting cuz failed all auths!");
         requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("Authorization is missing").build());
+    }
+
+    private void setSession(final ContainerRequestContext requestContext) {
+        HttpSession session = request.getSession();
+        if (session.getAttribute("authenticated-user") == null) { // Necessary?
+            final StringTokenizer tokenizer = getAuthentiacationTokenizer(requestContext);
+            final String user = tokenizer.nextToken();
+
+            final String key = secureStore.getUserKey(user);
+            if (key == null) {
+                requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("User key invalid.").build());
+            }
+
+            session.setAttribute("authenticated-user", key);
+
+            session.setAttribute("authentication-token", "AUTH!");
+            LocalDateTime date = LocalDateTime.now().plus(LOGIN_DURATION, ChronoUnit.MINUTES);
+
+            session.setAttribute("authentication-expiry-date", date);
+        }
     }
 
 
@@ -84,6 +115,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (!valid) {
             // Wipe session tokens from client.
             session.removeAttribute("authentication-token");
+            session.removeAttribute("authentication-user");
             session.removeAttribute("authentication-expiry-date");
         }
 
@@ -110,19 +142,25 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         return false;
     }
 
-
-    private boolean hasValidBasicAuthentication(final ContainerRequestContext requestContext, final Set<String> rolesSet) {
+    private StringTokenizer getAuthentiacationTokenizer(final ContainerRequestContext requestContext) {
         final MultivaluedMap<String, String> headers = requestContext.getHeaders();
         final List<String> auth = headers.get(AUTHORIZATION_PROPERTY);
 
         if (auth == null || auth.isEmpty()) {
-            return false;
+            return null;
         }
 
         final String encodedUserPassword = auth.get(0).replaceFirst(AUTHORIZATION_SCHEME + " ", "");
         final String userAndPassword = new String(Base64.getDecoder().decode(encodedUserPassword.getBytes()));
 
-        final StringTokenizer tokenizer = new StringTokenizer(userAndPassword, ":");
+        return new StringTokenizer(userAndPassword, ":");
+    }
+
+    private boolean hasValidBasicAuthentication(final ContainerRequestContext requestContext, final Set<String> rolesSet) {
+        final StringTokenizer tokenizer = getAuthentiacationTokenizer(requestContext);
+        if (tokenizer == null) {
+            return false;
+        }
         final String user = tokenizer.nextToken();
         final String pass = tokenizer.nextToken();
 
@@ -137,7 +175,18 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     private boolean isUserAllowed(final String username, final String password, final Set<String> rolesSet) {
         // TODO actually map to users and check if the hash'd password matches the documentation.
         boolean isAllowed = false;
+
+        if (secureStore.isValidUser(username, password)) {
+            return true;
+            //TODO roles.
+        }
+
         if (username.equals("localhcpuser") && password.equals("Password1")) {
+            String userRole = "ADMIN";
+            if (rolesSet.contains(userRole)) {
+                isAllowed = true;
+            }
+        } else if (username.equals("cherie") && password.equals("123")) {
             String userRole = "ADMIN";
             if (rolesSet.contains(userRole)) {
                 isAllowed = true;

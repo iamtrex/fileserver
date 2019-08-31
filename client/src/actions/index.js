@@ -1,5 +1,5 @@
 import {ACTION, FILE_TYPES, NETWORK_FAIL_REASONS} from "../Constants";
-import {getFilesFromNetwork, downloadFile, login, checkServerSession} from "../utils/RestClient";
+import {checkServerSession, downloadFile, getFilesFromNetwork, login, signup} from "../utils/RestClient";
 
 export const loadRootDirectory = () => {
     return (dispatch) => {
@@ -16,7 +16,8 @@ const loadDirectory = (dispatch, pathUrl) => {
         dispatch({
             type: ACTION.END_BROWSE_NEW_FILES_SUCCESS,
             payload: {
-                files: files
+                files: files,
+                path: pathUrl
             }
         })
     }).catch((error) => {
@@ -67,6 +68,21 @@ const attemptDownloadFile = (dispatch, file) => {
     });
 };
 
+export const browseUp = () => {
+    return (dispatch, getState) => {
+        const currPath = getState().FileReducer.path;
+        const upPath = currPath.substring(0, currPath.lastIndexOf("%2F"));
+
+        if (upPath !== "") {
+            loadDirectory(dispatch, upPath);
+        } else {
+            dispatch({
+                type: ACTION.BROWSE_FAIL
+            })
+        }
+    }
+};
+
 export const clickFile = file => {
     return (dispatch) => {
         if (file.type === FILE_TYPES.FOLDER) {
@@ -78,6 +94,30 @@ export const clickFile = file => {
                 type: ACTION.BROWSE_FAIL
             });
         }
+    }
+};
+
+export const trySignup = (user, pass) => {
+    return (dispatch) => {
+        dispatch({
+            type: ACTION.BEGIN_SIGNUP
+        });
+
+        signup(user, pass).then(() => {
+            login(user, pass).then(() => {
+                dispatch({
+                    type: ACTION.AUTHENTICATED_WITH_SERVER
+                });
+            }).catch((error) => {
+                dispatch({
+                    type: ACTION.AUTH_REJECTED_FROM_SERVER
+                });
+            });
+        }).catch((error) => {
+            dispatch({
+                type: ACTION.SIGNUP_FAILURE
+            });
+        });
     }
 };
 
@@ -120,6 +160,16 @@ export const checkSession = () => {
 export const handleUserChanged = (type, event) => {
     return {
         type: type === 'USER' ? ACTION.USER_CHANGED : ACTION.PASS_CHANGED,
+        payload: {
+            value: event.target.value
+        }
+    };
+};
+
+export const handleSignupUserChanged = (type, event) => {
+    return {
+        type: type === 'USER' ? ACTION.SIGNUP_USER_CHANGED :
+            type === 'PASSWORD' ? ACTION.SIGNUP_PASS_CHANGED : ACTION.SIGNUP_CONFIRM_PASS_CHANGED,
         payload: {
             value: event.target.value
         }

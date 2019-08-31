@@ -1,14 +1,13 @@
 import "../style/FileBrowser.less"
 import React, {Component} from "react"
 
-import {checkSession, handleUserChanged, tryLogin} from "../actions"
+import {checkSession, handleSignupUserChanged, trySignup} from "../actions"
 import {connect} from "react-redux"
-import {Button, Form, Grid, Header, Image, Message, Segment} from 'semantic-ui-react'
+import {Button, Form, Grid, Header, Image, Segment} from 'semantic-ui-react'
 import {Redirect} from "react-router";
-import {Link} from "react-router-dom";
 
 
-class Login extends Component {
+class Signup extends Component {
 
     componentDidMount() {
         if (!this.props.hasCheckedServerAuth) {
@@ -16,9 +15,12 @@ class Login extends Component {
         }
     }
 
-
-    doLogin = () => {
-        this.props.tryLogin(this.props.username, this.props.password);
+    doSignup = () => {
+        if (this.props.password !== this.props.confirmPassword) {
+            // Throw error to UI.
+        } else {
+            this.props.trySignup(this.props.username, this.props.password);
+        }
     };
 
     render() {
@@ -31,24 +33,30 @@ class Login extends Component {
                     <Form size='large'>
                         <Segment stacked>
                             <Form.Input fluid icon='user' iconPosition='left' placeholder='Username'
-                                        onChange={this.props.handleUserChanged.bind(this, 'USER')}/>
+                                        onChange={this.props.handleSignupUserChanged.bind(this, 'USER')}/>
                             <Form.Input
                                 fluid
                                 icon='lock'
                                 iconPosition='left'
                                 placeholder='Password'
                                 type='password'
-                                onChange={this.props.handleUserChanged.bind(this, 'PASSWORD')}
+                                onChange={this.props.handleSignupUserChanged.bind(this, 'PASSWORD')}
                             />
 
-                            <Button color='teal' fluid size='large' onClick={this.doLogin.bind(this)}>
-                                Login
+                            <Form.Input
+                                fluid
+                                icon='lock'
+                                iconPosition='left'
+                                placeholder='Confirm Password'
+                                type='password'
+                                onChange={this.props.handleSignupUserChanged.bind(this, 'CONFIRM_PASSWORD')}
+                            />
+
+                            <Button color='teal' fluid size='large' onClick={this.doSignup.bind(this)}>
+                                Sign Up!
                             </Button>
                         </Segment>
                     </Form>
-                    <Message>
-                        New to us? <Link to={"/signup"}><Button size="mini" content={"Sign Up!"}/></Link>
-                    </Message>
                 </Grid.Column>
             </Grid> :
             <Redirect to={"/files"}/>
@@ -57,19 +65,20 @@ class Login extends Component {
 
 
 const mapStateToProps = state => ({
-    username: state.UserReducer.username,
-    password: state.UserReducer.password,
+    username: state.UserReducer.signupUsername,
+    password: state.UserReducer.signupPassword,
+    confirmPassword: state.UserReducer.signupConfirmPassword,
     isUserAuthenticated: state.UserReducer.isUserAuthenticated,
     hasCheckedServerAuth: state.UserReducer.hasCheckedServerAuth
 });
 
 const mapDispatchToProps = dispatch => ({
     checkSession: () => dispatch(checkSession()),
-    tryLogin: (user, pass) => dispatch(tryLogin(user, pass)),
-    handleUserChanged: (type, event) => dispatch(handleUserChanged(type, event))
+    trySignup: (user, pass) => dispatch(trySignup(user, pass)),
+    handleSignupUserChanged: (type, event) => dispatch(handleSignupUserChanged(type, event))
 });
 
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(Login)
+)(Signup)

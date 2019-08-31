@@ -1,21 +1,51 @@
 package com.rweqx.rest;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.rweqx.files.FileBrowserService;
+import com.rweqx.sql.SecureStore;
+
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
-@Path("/login")
+@Path("/")
 public class RestLogin {
 
+    @Inject
+    private SecureStore secureStore;
+
+
+    @PermitAll
+    @Path("/signup")
+    @POST
+    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response signup(String json) {
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        final String username = obj.get("username").getAsString();
+        final String password = obj.get("password").getAsString();
+
+        boolean success = secureStore.attemptSaveUser(username, password);
+
+        if (success) {
+            // Create user's folder.
+            FileBrowserService.getInstance().setupUser(secureStore.getUserKey(username));
+            return Response.ok().build();
+        }
+
+        return Response.status(401, "Failed to create user").build();
+    }
+
+
+    @Path("/login")
     @RolesAllowed("ADMIN")
     @GET
     @Produces("application/json")
@@ -26,18 +56,9 @@ public class RestLogin {
             System.out.println("Doesnt' have a session!");
         }
 
-        HttpSession session = request.getSession();
-        if (session.getAttribute("authentication-token") == null) {
-            session.setAttribute("authentication-token", "AUTH!"); // Set session attribute.
-            LocalDateTime date = LocalDateTime.now().plus(1, ChronoUnit.MINUTES);
-
-            session.setAttribute("authentication-expiry-date", date);
-        }
-
         if (cookie != null) {
             System.out.println("Hello world it has a cookie!");
         }
-
         return Response.ok().build();
         // Return a session token since it's authenticated.
         //NewCookie newCookie = new NewCookie("session-token", "123");

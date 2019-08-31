@@ -26,7 +26,7 @@ const handleError = (reject, response) => {
 }
 
 export const downloadFile = (file) => {
-    window.open("rest/file?path=" + file.pathUrl,'_blank');
+    window.open("rest/file?path=" + file.pathUrl, '_blank');
 };
 
 export const login = (user, pass) => {
@@ -38,6 +38,26 @@ export const login = (user, pass) => {
                 'Authorization': 'Basic ' + btoa(user + ':' + pass),
             },
             url: "rest/login",
+            success: (result) => {
+                resolve();
+            },
+            error: response => handleError(reject, response)
+        });
+
+    });
+};
+
+export const signup = (user, pass) => {
+    return new Promise((resolve, reject) => {
+        console.log("Attempting signup with ", user, " ", pass);
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({
+                "username": user,
+                "password": pass
+            }),
+            url: "rest/signup",
             success: (result) => {
                 resolve();
             },

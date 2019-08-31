@@ -4,7 +4,10 @@ import com.google.gson.JsonObject;
 import com.rweqx.files.FileBrowserService;
 
 import javax.annotation.security.RolesAllowed;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -15,8 +18,12 @@ public class RestServer {
     @GET
     @Path("/files")
     @Produces("application/json")
-    public String getFiles(@DefaultValue("") @QueryParam("path") String path) {
-        JsonObject object = FileBrowserService.getInstance().getFiles(path);
+    public String getFiles(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("path") String path) {
+        HttpSession session = request.getSession(false);
+
+        final String userKey = (String) session.getAttribute("authenticated-user");
+
+        JsonObject object = FileBrowserService.getInstance().getFiles(userKey, path);
         return object.toString();
     }
 
@@ -24,8 +31,12 @@ public class RestServer {
     @GET
     @Path("/file")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFile1(@DefaultValue("") @QueryParam("path") String path) {
-        return FileBrowserService.getInstance().getFile(path);
+    public Response getFile(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("path") String path) {
+        HttpSession session = request.getSession(false);
+
+        final String userKey = (String) session.getAttribute("authenticated-user");
+
+        return FileBrowserService.getInstance().getFile(userKey, path);
     }
 
 }

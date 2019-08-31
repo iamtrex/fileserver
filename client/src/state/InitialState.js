@@ -8,5 +8,5 @@ export default {
         name: "Orange",
         link: "www.youtube.com"
     }],
-    currentPath: null
+    path: null
 }

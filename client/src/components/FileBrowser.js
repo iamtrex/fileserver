@@ -2,15 +2,15 @@ import "../style/FileBrowser.less"
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
-import {List} from 'semantic-ui-react'
+import {Button, Dimmer, List, Loader} from 'semantic-ui-react'
 
-import {clickFile, loadRootDirectory} from "../actions"
+import {browseUp, clickFile, loadRootDirectory} from "../actions"
 import {Redirect} from "react-router";
 
 class FileBrowser extends Component {
 
     componentDidMount() {
-        console.log("Tryign to load root directory!!!");
+        console.log("Trying to load root directory!!!");
         this.props.loadRootDirectory();
     }
 
@@ -20,13 +20,29 @@ class FileBrowser extends Component {
                 key: index,
                 content: file.name,
                 description: file.size,
+                image: {
+                    src: "data:image/png;base64," + file.thumbnail
+                },
                 onClick: e => this.props.clickFile(file)
+
             }
         });
         return this.props.isUserAuthenticated ? <div>
-            <h1>Files</h1>
-            <List selection items={items}/>
-        </div> :
+                <h1>Files</h1>
+
+                {this.props.isLoading ?
+                    <Dimmer active inverted>
+                        <Loader inverted content={"Loading"}/>
+                    </Dimmer>
+                    :
+                    <div>
+                        <Button
+                            content={"Up"}
+                            onClick={this.props.browseUp}
+                        />
+                        <List selection items={items}/></div>
+                }
+            </div> :
             <Redirect to={"/login"}/>
     }
 }
@@ -34,10 +50,12 @@ class FileBrowser extends Component {
 
 const mapStateToProps = state => ({
     isUserAuthenticated: state.UserReducer.isUserAuthenticated,
-    files: state.FileReducer.files
+    files: state.FileReducer.files,
+    isLoading: state.FileReducer.isLoading
 });
 
 const mapDispatchToProps = dispatch => ({
+    browseUp: () => dispatch(browseUp()),
     clickFile: file => dispatch(clickFile(file)),
     loadRootDirectory: () => dispatch(loadRootDirectory())
 });
