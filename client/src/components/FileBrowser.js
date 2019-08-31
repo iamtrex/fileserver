@@ -18,8 +18,10 @@ class FileBrowser extends Component {
         const items = this.props.files.map((file, index) => {
             return {
                 key: index,
-                content: file.name,
-                description: file.size,
+                content: {
+                    header: file.name,
+                    description: file.size ? "Size: " + file.size : ""
+                },
                 image: {
                     src: "data:image/png;base64," + file.thumbnail
                 },
@@ -29,7 +31,6 @@ class FileBrowser extends Component {
         });
         return this.props.isUserAuthenticated ? <div>
                 <h1>Files</h1>
-
                 {this.props.isLoading ?
                     <Dimmer active inverted>
                         <Loader inverted content={"Loading"}/>
@@ -40,6 +41,7 @@ class FileBrowser extends Component {
                             content={"Up"}
                             onClick={this.props.browseUp}
                         />
+                        <h3>{items.length} files</h3>
                         <List selection items={items}/></div>
                 }
             </div> :

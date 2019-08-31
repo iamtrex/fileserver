@@ -44,7 +44,7 @@ const attemptDownloadFile = (dispatch, file) => {
         type: ACTION.BEGIN_DOWNLOAD_FILE,
     });
 
-    downloadFile(file).then((result) => {
+    downloadFile(file).then(() => {
         dispatch({
             type: ACTION.END_DOWNLOAD_FILE_SUCCESS
         });

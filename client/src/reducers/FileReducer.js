@@ -24,6 +24,7 @@ export default (state = initialState, action) => {
         case ACTION.END_DOWNLOAD_FILE_FAIL:
         case ACTION.END_DOWNLOAD_FILE_SUCCESS:
             return {
+                ...state,
                 isLoading: false
             };
     }

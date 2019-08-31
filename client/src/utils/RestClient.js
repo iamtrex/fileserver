@@ -26,7 +26,10 @@ const handleError = (reject, response) => {
 }
 
 export const downloadFile = (file) => {
-    window.open("rest/file?path=" + file.pathUrl, '_blank');
+    return new Promise((resolve, reject) => {
+        window.open("rest/file?path=" + file.pathUrl, '_blank');
+        resolve();
+    });
 };
 
 export const login = (user, pass) => {
