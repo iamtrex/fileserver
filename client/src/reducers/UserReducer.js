@@ -47,6 +47,18 @@ export default (state = userInitialState, action) => {
             return {
                 ...state,
                 hasCheckedServerAuth: true
+            };
+        case ACTION.LOGOUT_FAILED:
+            return {
+                ...state,
+                hasCheckedServerAuth: false
+            };
+        case ACTION.LOGOUT_SUCCESS:
+            return {
+                ...state,
+                isUserAuthenticated: false,
+                hasCheckedServerAuth: true,
+
             }
     }
     return state;

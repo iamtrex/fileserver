@@ -23,7 +23,19 @@ const handleError = (reject, response) => {
         reject(NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING)
     }
     reject(NETWORK_FAIL_REASONS.OTHER);
-}
+};
+
+export const getImageSourcePath = (file) => {
+    return new Promise((resolve, reject) => {
+        resolve("rest/file?path=" + file.pathUrl);
+    });
+};
+
+export const getVideoSourcePath = (file) => {
+    return new Promise((resolve, reject) => {
+        resolve("rest/file?path=" + file.pathUrl);
+    });
+};
 
 export const downloadFile = (file) => {
     return new Promise((resolve, reject) => {
@@ -41,6 +53,21 @@ export const login = (user, pass) => {
                 'Authorization': 'Basic ' + btoa(user + ':' + pass),
             },
             url: "rest/login",
+            success: () => {
+                resolve();
+            },
+            error: response => handleError(reject, response)
+        });
+
+    });
+};
+
+export const logout = (s) => {
+    return new Promise((resolve, reject) => {
+        console.log("Attempting logout");
+        $.ajax({
+            type: "GET",
+            url: "rest/logout",
             success: () => {
                 resolve();
             },
@@ -82,5 +109,45 @@ export const checkServerSession = () => {
             },
             error: response => handleError(reject, response)
         });
+    });
+};
+
+//TODO SHOULD THIS PLACE SPLIT THE PROMISES OR SHOULD THE ACTION SPLIT IT?
+export const uploadFiles = (files, path) => {
+    return new Promise((resolve, reject) => {
+        let promises = [];
+        for(let i=0; i<files.length; i++){
+            let file = files[i];
+            promises.push(new Promise((resolve, reject) => {
+                const data = new FormData();
+                data.append('file', file);
+                data.append('name', file.name);
+
+                fetch("rest/upload?path=" + path, {
+                    method: "POST",
+                    body: data
+                }).then((result) => {
+                    resolve();
+                });
+                /*
+                $.ajax({
+                    type: "POST",
+                    headers: {},
+                    url: "rest/upload",
+                    data: JSON.stringify({
+                        "name": file.name,
+                        "fileData": data,
+                        "path": path
+                    }),
+                    success: () => {
+                        resolve();
+                    },
+                    error: response => handleError(reject, response)
+                });*/
+
+            }));
+        }
+
+        Promise.all(promises).then(() => resolve());
     });
 };

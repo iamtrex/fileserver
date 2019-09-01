@@ -4,7 +4,10 @@ package com.rweqx.rest;
 import com.rweqx.authentication.AuthenticationFilter;
 import com.rweqx.sql.SecureStore;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import to.lova.jaxrs.filter.RangeResponseFilter;
+
 
 import javax.ws.rs.ApplicationPath;
 
@@ -13,7 +16,10 @@ public class ApplicationConfig extends ResourceConfig {
     public ApplicationConfig() {
         packages("com.rweqx.rest");
         register(AuthenticationFilter.class);
+        //register(RangeResponseFilter.class);
+        register(MultiPartFeature.class);
         register(new ApplicationBinder());
+
     }
 
 
