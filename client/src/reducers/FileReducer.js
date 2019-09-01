@@ -90,8 +90,11 @@ export default (state = initialState, action) => {
                 newFiles: null
             };
         case ACTION.AUTHENTICATION_MISSING:
+        case ACTION.LOGOUT_SUCCESS:
             return {
                 ...state,
+                files: null,
+                path: null,
                 isUploading: false,
                 previewingFile: false,
                 isLoading: false,

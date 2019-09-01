@@ -31,6 +31,7 @@ class Login extends Component {
                     <Form size='large'>
                         <Segment stacked>
                             <Form.Input fluid icon='user' iconPosition='left' placeholder='Username'
+                                        value={this.props.username}
                                         onChange={this.props.handleUserChanged.bind(this, 'USER')}/>
                             <Form.Input
                                 fluid
@@ -38,6 +39,7 @@ class Login extends Component {
                                 iconPosition='left'
                                 placeholder='Password'
                                 type='password'
+                                value={this.props.password}
                                 onChange={this.props.handleUserChanged.bind(this, 'PASSWORD')}
                             />
 
