@@ -54,7 +54,7 @@ public class FileBrowserService {
         }
 
         String fullPath = prependPath(userKey, folderPath);
-        if(!isPathAccessValid(userKey, fullPath)) {
+        if (!isPathAccessValid(userKey, fullPath)) {
             throw new ServerException(403, "User is not authorized to read from this path " + folderPath);
         }
 
@@ -139,6 +139,7 @@ public class FileBrowserService {
         return new File(root + userKey).toPath().toString();
 
     }
+
     private String prependPath(String userKey, String filePath) {
         return getPrependKey(userKey) + filePath;
     }

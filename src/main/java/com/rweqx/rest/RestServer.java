@@ -2,24 +2,25 @@ package com.rweqx.rest;
 
 import com.google.gson.JsonObject;
 import com.rweqx.files.FileBrowserService;
+import com.rweqx.streaming.MultipartFileSender;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.annotation.security.RolesAllowed;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.Part;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Logger;
 
 @Path("/")
 public class RestServer {
+    private final Logger LOGGER = Logger.getLogger(RestServer.class.getName());
 
     @RolesAllowed("ADMIN")
     @GET
@@ -68,22 +69,32 @@ public class RestServer {
         return Response.ok().build();
     }
 
-    /*
+
     @RolesAllowed("ADMIN")
     @GET
     @Path("/stream")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getStream(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("path") String path){
+    public void getStream(@Context HttpServletRequest request, @Context HttpServletResponse response, @DefaultValue("") @QueryParam("path") String path) {
         HttpSession session = request.getSession(false);
         final String userKey = (String) session.getAttribute("authenticated-user");
 
         File file = FileBrowserService.getInstance().getFile(userKey, path);
+
+        try {
+            LOGGER.info("Response sending");
+            MultipartFileSender.fromFile(file).setRequest(request).setResponse(response).serveResource();
+            LOGGER.info("Response sent successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        /*
         return Response.status(206)
                 .entity(file)
                 .type(MediaType.APPLICATION_OCTET_STREAM)
                 .header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"")
                 .header("Content-Length", String.valueOf(file.length()))
-                .build();
-    }*/
+                .build();*/
+    }
 
 }

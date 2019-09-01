@@ -6,8 +6,6 @@ import com.rweqx.sql.SecureStore;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import to.lova.jaxrs.filter.RangeResponseFilter;
-
 
 import javax.ws.rs.ApplicationPath;
 

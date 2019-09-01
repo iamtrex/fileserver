@@ -33,7 +33,7 @@ export const getImageSourcePath = (file) => {
 
 export const getVideoSourcePath = (file) => {
     return new Promise((resolve, reject) => {
-        resolve("rest/file?path=" + file.pathUrl);
+        resolve("rest/stream?path=" + file.pathUrl);
     });
 };
 

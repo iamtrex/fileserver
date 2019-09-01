@@ -75,7 +75,7 @@ public class RestLogin {
         if (stayLoggedIn != null && stayLoggedIn.equalsIgnoreCase("TRUE")) {
             // Set cookies.
             // TODO - Can't actaully set cookies here. Would have to set in the login request/
-            NewCookie newCookie = new NewCookie("session-token", "123", "/", null, null, 60*60*24*7, false, true);
+            NewCookie newCookie = new NewCookie("session-token", "123", "/", null, null, 60 * 60 * 24 * 7, false, true);
             return Response.ok(newCookie).build();
         }
         return Response.ok().build();
