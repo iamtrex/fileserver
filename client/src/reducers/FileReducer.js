@@ -86,7 +86,7 @@ export default (state = INITIAL_STATE, action) => {
         case ACTION.TOGGLE_VIEW_MODE:
             return {
                 ...state,
-                viewMode: state.viewMode === VIEW_MODE.LIST ? VIEW_MODE.THUMB : VIEW_MODE.LIST
+                viewMode: action.payload.viewMode
             }
     }
     return state;

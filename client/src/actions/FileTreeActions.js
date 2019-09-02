@@ -2,10 +2,12 @@ import {ACTION, NETWORK_FAIL_REASONS} from "../Constants";
 import {getFilesFromNetwork} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 
-export const toggleViewMode = (e) => {
-    console.log("toggle view mode", e);
+export const toggleViewMode = (viewMode) => {
     return {
-        type: ACTION.TOGGLE_VIEW_MODE
+        type: ACTION.TOGGLE_VIEW_MODE,
+        payload: {
+            viewMode: viewMode
+        }
     }
 }
 export const browseUp = (currPath) => {

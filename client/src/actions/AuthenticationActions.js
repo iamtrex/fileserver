@@ -1,6 +1,7 @@
-import {ACTION, INPUT_TYPES} from "../Constants";
+import {ACTION, INPUT_TYPES, PAGES} from "../Constants";
 import {checkServerSession, login, logout, signup} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
+import {navigateTo} from "./NavigationActions";
 
 export const trySignup = (user, pass) => {
     return (dispatch) => {
@@ -40,6 +41,7 @@ export const tryLogin = (user, pass) => {
             dispatch({
                 type: ACTION.AUTHENTICATED_WITH_SERVER
             });
+            dispatch(navigateTo(PAGES.FILE_BROWSER));
         }).catch((error) => {
             dispatch({
                 type: ACTION.AUTH_REJECTED_FROM_SERVER
@@ -58,6 +60,7 @@ export const tryLogout = () => {
             dispatch({
                 type: ACTION.LOGOUT_SUCCESS
             });
+            dispatch(navigateTo(PAGES.LOGIN));
         }).catch((error) => {
             dispatch({
                 type: ACTION.LOGOUT_FAILED
@@ -77,6 +80,7 @@ export const checkSession = () => {
                 type: ACTION.AUTHENTICATED_WITH_SERVER
             });
             dispatch(SET_LOADING_FALSE_ACTION);
+            dispatch(navigateTo(PAGES.FILE_BROWSER));
         }).catch((error) => {
             dispatch({
                 type: ACTION.AUTH_REJECTED_FROM_SERVER

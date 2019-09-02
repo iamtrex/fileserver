@@ -1,8 +1,8 @@
-import "../../style/FileBrowser.less"
+import style from "../../style/FileBrowser.less"
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
-import {Button, Checkbox, Dimmer, List, Loader} from 'semantic-ui-react'
+import {Checkbox, Dimmer, List, Loader} from 'semantic-ui-react'
 
 import {navigator} from "../Navigator";
 import {FILE_TYPES, PAGES, VIEW_MODE} from "../../Constants";
@@ -18,6 +18,11 @@ import {
 import {navigateTo} from "../../actions/NavigationActions";
 import {FileThumbItem} from "../ListItem/FileThumbItem";
 import CardColumns from "react-bootstrap/CardColumns";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
+import Button from "react-bootstrap/Button";
+import ToggleButton from "react-bootstrap/ToggleButton";
+import CardGroup from "react-bootstrap/CardGroup";
+import CardDeck from "react-bootstrap/CardDeck";
 
 class FileBrowser extends Component {
 
@@ -86,13 +91,18 @@ class FileBrowser extends Component {
                 </Dimmer>
                 :
                 <div>
-                    <Button.Group>
-                        <Button content={"Up"} onClick={this.props.browseUp.bind(this, this.props.path)}/>
-                        <Button content={"Upload"} onClick={this.chooseFile}/>
-                        <Button content={"Log Out"} onClick={this.props.tryLogout}/>
-                    </Button.Group>
-                    <Checkbox toggle onChange={this.props.toggleViewMode} checked={this.props.viewMode === VIEW_MODE.THUMB}/>
-                    <h1>{decodeURIComponent(this.props.path)}</h1>
+                    <ButtonGroup>
+                        <Button variant={"secondary"} onClick={this.props.browseUp.bind(this, this.props.path)}>Up</Button>
+                        <Button variant={"secondary"} onClick={this.chooseFile}>Upload</Button>
+                        <Button variant={"secondary"} onClick={this.props.tryLogout}>Log Out</Button>
+                    </ButtonGroup>
+                    <hr/>
+                    <ButtonGroup toggle>
+                        <Button defaultChecked variant={"secondary"} onClick={this.props.toggleViewMode.bind(this, VIEW_MODE.LIST)}>List View</Button>
+                        <Button variant={"secondary"} onClick={this.props.toggleViewMode.bind(this, VIEW_MODE.THUMB)}>Thumbnail View</Button>
+                    </ButtonGroup>
+                    <h2>{decodeURIComponent(this.props.path)}</h2>
+                    <h2>{this.props.files && this.props.files.length ? (this.props.files.length + " files") : "No files found"}</h2>
                     <input multiple type="file" className="file" id="file-picker" style={{"display": "none"}}
                            onChange={this.props.attemptUploadFile.bind(this, this.props.path)}/>
                     {this.props.viewMode === VIEW_MODE.LIST ?
@@ -103,7 +113,7 @@ class FileBrowser extends Component {
                         </List> : null
                     }
                     {this.props.viewMode === VIEW_MODE.THUMB ?
-                        <CardColumns>
+                        <CardColumns className={style.cardColumns}>
                             {items.map((i) => {
                                 return <FileThumbItem i={i} loadThumbnail={this.props.attemptLoadThumbnail.bind(this, i)}/>
                             })}
@@ -139,7 +149,7 @@ const mapDispatchToProps = dispatch => ({
     attemptDownloadFile: (file) => dispatch(attemptDownloadFile(file)),
     tryLogout: () => dispatch(tryLogout()),
     attemptLoadThumbnail: path => dispatch(attemptLoadThumbnail(path)),
-    toggleViewMode: e => dispatch(toggleViewMode(e))
+    toggleViewMode: viewMode => dispatch(toggleViewMode(viewMode))
 });
 
 export default connect(

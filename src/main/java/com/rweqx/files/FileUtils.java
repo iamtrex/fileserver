@@ -7,7 +7,6 @@ import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +15,7 @@ import java.util.*;
 public class FileUtils {
 
     private static final int ICON_SIZE = 50;
-    private static final int THUMB_SIZE = 100;
+    private static final int THUMB_SIZE = 400;
 
     private static final Set IMAGE_EXTENSION_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("png", "jpg", "jpeg", "cr2")));
 
@@ -33,6 +32,7 @@ public class FileUtils {
 
         return "";
     }
+
     /**
      * Gets a Base64 encoding of the thumbnail image of the file.
      * Assumes the file exists.
@@ -46,7 +46,8 @@ public class FileUtils {
             try {
                 // This seems too expensive. -> Need to probably do it differently.
                 image = Thumbnailator.createThumbnail(file, THUMB_SIZE, THUMB_SIZE);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
 
         if (image == null) {

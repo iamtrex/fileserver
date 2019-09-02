@@ -107,6 +107,9 @@ public class SecureStore {
 
 
     public boolean attemptSaveUser(final String username, final String password) {
+        // TODO CHECK TO MAKE SURE USERNAME DOESN'T ALREADY EXIST!
+
+
         final byte[] salt = generateSalt();
         final String hashedPassword = hashPassword(password, salt);
 

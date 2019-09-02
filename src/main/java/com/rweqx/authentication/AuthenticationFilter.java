@@ -25,7 +25,7 @@ import java.util.*;
 @Provider
 public class AuthenticationFilter implements ContainerRequestFilter {
 
-    private final int LOGIN_DURATION = 10; //Minutes.
+    private final int LOGIN_DURATION = 30; //Minutes.
 
     @Inject
     private SecureStore secureStore;

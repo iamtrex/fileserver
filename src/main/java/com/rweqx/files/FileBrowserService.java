@@ -3,11 +3,9 @@ package com.rweqx.files;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.rweqx.exceptions.ServerException;
-import java.awt.Image;
-import net.coobird.thumbnailator.Thumbnailator;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
-import java.awt.image.BufferedImage;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +21,6 @@ public class FileBrowserService {
 
     private static FileBrowserService instance;
     private final String root = "D:/Server/";
-
-    private final int THUMBNAIL_SIZE = 100;
 
     public static FileBrowserService getInstance() {
         if (instance == null) {
