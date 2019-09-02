@@ -15,7 +15,7 @@ export default (state = USER_INITIAL_STATE, action) => {
         case ACTION.SIGNUP_USER_CHANGED:
             return {
                 ...state,
-                signupUsername: action.payload.value
+                signupUsername: action.payload.value.toLowerCase() //TODO remove this.
             };
         case ACTION.SIGNUP_PASS_CHANGED:
             return {
@@ -30,7 +30,7 @@ export default (state = USER_INITIAL_STATE, action) => {
         case ACTION.LOGIN_USER_CHANGED:
             return {
                 ...state,
-                loginUsername: action.payload.value
+                loginUsername: action.payload.value.toLowerCase()
             };
         case ACTION.LOGIN_PASS_CHANGED:
             return {

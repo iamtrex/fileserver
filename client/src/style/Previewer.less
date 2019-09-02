@@ -1,4 +1,4 @@
-@shellHeight: 30px;
+@shellHeight: 50px;
 
 .shell {
   height: @shellHeight;
@@ -6,11 +6,17 @@
 }
 
 .wrapper {
-  height: calc(100% - @shellHeight);
-  background-color: blue;
+  height: calc(100vh - @shellHeight);
+  overflow-y: hidden;
 
-  .video-player, .image-viewer {
+  .videoPlayer {
     width: 100%;
+    max-height: 100%;
+    height: auto;
+  }
+
+  .imageViewer {
+    max-width: 100%;
     max-height: 100%;
     height: auto;
   }

@@ -1,9 +1,9 @@
-import "../../style/Previewer.less"
+import styles from "../../style/Previewer.less";
 
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
-import {Button, Dimmer, Loader} from 'semantic-ui-react'
+import {Button, Dimmer, Image, Loader} from 'semantic-ui-react'
 import {FILE_TYPES, PAGES} from "../../Constants";
 import {ImagePreviewer} from "../previewers/ImagePreviewer";
 import {VideoPreviewer} from "../previewers/VideoPreviewer";
@@ -30,12 +30,13 @@ class Preview extends Component {
             </Dimmer>
             :
             <div>
-                <div className={"shell"}>
+                <div className={styles.shell}>
                     <Button onClick={this.props.navigateTo.bind(this, PAGES.FILE_BROWSER)}>Back</Button>
                 </div>
-                <div className={"wrapper"}>
+                <div className={styles.wrapper}>
                     {this.props.previewFile.type === FILE_TYPES.IMAGE ?
-                        <ImagePreviewer src={this.props.previewFile.src}/> : null}
+                        <ImagePreviewer src={this.props.previewFile.src}/>
+                        : null}
                     {this.props.previewFile.type === FILE_TYPES.VIDEO ?
                         <VideoPreviewer src={this.props.previewFile.src}
                                         type={this.props.previewFile.videoType}/> : null}
