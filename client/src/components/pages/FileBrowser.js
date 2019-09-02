@@ -2,20 +2,22 @@ import "../../style/FileBrowser.less"
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
-import {Button, Dimmer, List, Loader} from 'semantic-ui-react'
+import {Button, Checkbox, Dimmer, List, Loader} from 'semantic-ui-react'
 
 import {navigator} from "../Navigator";
-import {FILE_TYPES, PAGES} from "../../Constants";
+import {FILE_TYPES, PAGES, VIEW_MODE} from "../../Constants";
 import {FileListItem} from "../ListItem/FileListItem";
 import {
-    attemptDownloadFile,
+    attemptDownloadFile, attemptLoadThumbnail,
     attemptPreviewFile,
     attemptUploadFile,
     browseUp,
-    loadDirectory,
+    loadDirectory, toggleViewMode,
     tryLogout
 } from "../../actions";
 import {navigateTo} from "../../actions/NavigationActions";
+import {FileThumbItem} from "../ListItem/FileThumbItem";
+import CardColumns from "react-bootstrap/CardColumns";
 
 class FileBrowser extends Component {
 
@@ -61,6 +63,7 @@ class FileBrowser extends Component {
                 imageSrc: file.thumbnail && file.thumbnail !== "" ? ("data:image/png;base64," + file.thumbnail) : null,
                 type: file.type,
                 pathUrl: file.pathUrl,
+                thumbnailSrc: file.thumbnailSrc,
                 selectionOnClick: e => this.clickFile(file),
                 previewOnClick: e => this.props.previewFile(file),
                 downloadOnClick: e => this.clickFile(file)
@@ -88,14 +91,26 @@ class FileBrowser extends Component {
                         <Button content={"Upload"} onClick={this.chooseFile}/>
                         <Button content={"Log Out"} onClick={this.props.tryLogout}/>
                     </Button.Group>
+                    <Checkbox toggle onChange={this.props.toggleViewMode} checked={this.props.viewMode === VIEW_MODE.THUMB}/>
                     <h1>{decodeURIComponent(this.props.path)}</h1>
                     <input multiple type="file" className="file" id="file-picker" style={{"display": "none"}}
                            onChange={this.props.attemptUploadFile.bind(this, this.props.path)}/>
-                    <List selection>
-                        {items.map((i) => {
-                            return <FileListItem i={i}/>
-                        })}
-                    </List>
+                    {this.props.viewMode === VIEW_MODE.LIST ?
+                        <List selection>
+                            {items.map((i) => {
+                                return <FileListItem i={i}/>
+                            })}
+                        </List> : null
+                    }
+                    {this.props.viewMode === VIEW_MODE.THUMB ?
+                        <CardColumns>
+                            {items.map((i) => {
+                                return <FileThumbItem i={i} loadThumbnail={this.props.attemptLoadThumbnail.bind(this, i)}/>
+                            })}
+                        </CardColumns> : null
+                    }
+
+
                 </div>
             }
         </div>
@@ -110,7 +125,8 @@ const mapStateToProps = state => ({
     files: state.FileReducer.files,
     previewingFile: state.FileReducer.previewingFile,
     path: state.FileReducer.path,
-    serverUpdatedFiles: state.FileReducer.serverUpdatedFiles
+    serverUpdatedFiles: state.FileReducer.serverUpdatedFiles,
+    viewMode: state.FileReducer.viewMode
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -121,7 +137,9 @@ const mapDispatchToProps = dispatch => ({
     loadDirectory: path => dispatch(loadDirectory(path)),
     attemptUploadFile: (path, e) => dispatch(attemptUploadFile(path, e)),
     attemptDownloadFile: (file) => dispatch(attemptDownloadFile(file)),
-    tryLogout: () => dispatch(tryLogout())
+    tryLogout: () => dispatch(tryLogout()),
+    attemptLoadThumbnail: path => dispatch(attemptLoadThumbnail(path)),
+    toggleViewMode: e => dispatch(toggleViewMode(e))
 });
 
 export default connect(

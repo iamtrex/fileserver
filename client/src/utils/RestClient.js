@@ -33,12 +33,17 @@ export const getVideoSourcePath = (file) => {
     return "rest/stream?path=" + file.pathUrl;
 };
 
+export const getThumbnailPath = (file) => {
+    return "rest/thumbnail?path=" + file.pathUrl; //TODO make these all just take path?
+};
+
 export const downloadFile = (file) => {
     return new Promise((resolve, reject) => {
         window.open("rest/file?path=" + file.pathUrl, '_blank');
         resolve();
     });
 };
+
 
 export const login = (user, pass) => {
     return new Promise((resolve, reject) => {

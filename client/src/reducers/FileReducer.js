@@ -1,11 +1,12 @@
-import {ACTION, FILE_TYPES} from "../Constants";
+import {ACTION, FILE_TYPES, VIEW_MODE} from "../Constants";
 
 const INITIAL_STATE = Object.freeze({
     files: null,
     path: null,
     isUploading: false,
     serverUpdatedFiles: null,
-    previewFile: null
+    previewFile: null,
+    viewMode: VIEW_MODE.LIST
 });
 
 export default (state = INITIAL_STATE, action) => {
@@ -75,7 +76,18 @@ export default (state = INITIAL_STATE, action) => {
                 isUploading: false,
                 previewFileType: null
             };
-
+        case ACTION.LOAD_ICON:
+            let files = [...state.files];
+            files[action.payload.key].thumbnailSrc = action.payload.src;
+            return {
+                ...state,
+                files: files
+            }
+        case ACTION.TOGGLE_VIEW_MODE:
+            return {
+                ...state,
+                viewMode: state.viewMode === VIEW_MODE.LIST ? VIEW_MODE.THUMB : VIEW_MODE.LIST
+            }
     }
     return state;
 };

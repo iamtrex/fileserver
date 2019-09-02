@@ -1,4 +1,5 @@
-import "../../style/FileBrowser.less"
+import "../../style/Previewer.less"
+
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
@@ -29,13 +30,16 @@ class Preview extends Component {
             </Dimmer>
             :
             <div>
-                <Button onClick={this.props.navigateTo.bind(this, PAGES.FILE_BROWSER)}>Back</Button>
-                <hr/>
-                {this.props.previewFile.type === FILE_TYPES.IMAGE ?
-                    <ImagePreviewer src={this.props.previewFile.src}/> : null}
-                {this.props.previewFile.type === FILE_TYPES.VIDEO ?
-                    <VideoPreviewer src={this.props.previewFile.src}
-                                    type={this.props.previewFile.videoType}/> : null}
+                <div className={"shell"}>
+                    <Button onClick={this.props.navigateTo.bind(this, PAGES.FILE_BROWSER)}>Back</Button>
+                </div>
+                <div className={"wrapper"}>
+                    {this.props.previewFile.type === FILE_TYPES.IMAGE ?
+                        <ImagePreviewer src={this.props.previewFile.src}/> : null}
+                    {this.props.previewFile.type === FILE_TYPES.VIDEO ?
+                        <VideoPreviewer src={this.props.previewFile.src}
+                                        type={this.props.previewFile.videoType}/> : null}
+                </div>
             </div>
     }
 }

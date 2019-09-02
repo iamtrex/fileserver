@@ -7,6 +7,7 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.annotation.security.RolesAllowed;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -14,8 +15,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.awt.Image;
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.logging.Logger;
 
 @Path("/")
@@ -46,10 +52,31 @@ public class RestServer {
 
         File file = FileBrowserService.getInstance().getFile(userKey, path);
         return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"")
                 .header("Content-Length", String.valueOf(file.length()))
                 .build();
     }
+
+    @RolesAllowed("ADMIN")
+    @GET
+    @Path("/thumbnail")
+    @Produces("image/png")
+    public Response getThumbnail(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("path") String path) {
+        HttpSession session = request.getSession(false);
+        final String userKey = (String) session.getAttribute("authenticated-user");
+
+        Image image = FileBrowserService.getInstance().getFileThumbnail(userKey, path);
+        if (image == null) {
+            return Response.status(500, "Couldn't find image").build();
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            ImageIO.write((RenderedImage) image, "png", out);
+            return Response.ok(out.toByteArray()).build();
+        } catch (IOException e) {
+            return Response.status(500, "Couldn't copy image").build();
+        }
+    }
+
 
     @RolesAllowed("ADMIN")
     @POST

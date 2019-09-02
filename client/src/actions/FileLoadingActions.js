@@ -1,5 +1,5 @@
-import {ACTION, FILE_TYPES, NETWORK_FAIL_REASONS, TYPE_EXTENSIONS} from "../Constants";
-import {downloadFile, getImageSourcePath, getVideoSourcePath, uploadFiles} from "../utils/RestClient";
+import {ACTION, NETWORK_FAIL_REASONS} from "../Constants";
+import {downloadFile, getThumbnailPath, uploadFiles} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 
 export const attemptDownloadFile = (file) => {
@@ -31,6 +31,17 @@ export const attemptDownloadFile = (file) => {
             }
         });
     }
+};
+
+export const attemptLoadThumbnail = (file) => {
+    return {
+        type: ACTION.LOAD_ICON,
+        payload: {
+            src: getThumbnailPath(file),
+            key: file.key
+        }
+    }
+
 };
 
 export const attemptUploadFile = (path, e) => {

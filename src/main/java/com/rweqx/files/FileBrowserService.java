@@ -3,8 +3,11 @@ package com.rweqx.files;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.rweqx.exceptions.ServerException;
+import java.awt.Image;
+import net.coobird.thumbnailator.Thumbnailator;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,11 +24,29 @@ public class FileBrowserService {
     private static FileBrowserService instance;
     private final String root = "D:/Server/";
 
+    private final int THUMBNAIL_SIZE = 100;
+
     public static FileBrowserService getInstance() {
         if (instance == null) {
             instance = new FileBrowserService();
         }
         return instance;
+    }
+
+    public Image getFileThumbnail(String userKey, String path) {
+        LOGGER.info("Getting thumbnail for file with path - " + path);
+
+        String fullPath = prependPath(userKey, path);
+        if (!isPathAccessValid(userKey, fullPath)) {
+            throw new ServerException(403, "User is not authorized to read from this path " + path);
+        }
+
+        File file = new File(fullPath);
+        if (file.exists()) {
+            return FileUtils.getThumnailBase64(file);
+        } else {
+            throw new ServerException(404, "File was not found");
+        }
     }
 
     public File getFile(String userKey, String filePath) {
@@ -98,7 +119,7 @@ public class FileBrowserService {
             object.addProperty("size", size);
         }
 
-        object.addProperty("thumbnail", FileUtils.getThumnailBase64(file));
+        object.addProperty("thumbnail", FileUtils.getIconBase64(file));
 
         return object;
     }
@@ -166,4 +187,5 @@ public class FileBrowserService {
         }
         return true;
     }
+
 }

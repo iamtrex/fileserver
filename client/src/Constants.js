@@ -37,9 +37,11 @@ export const ACTION = Object.freeze({
     LOGOUT_FAILED: "LOGOUT_FAILED",
 
     NAVIGATE_TO: "NAVIGATE_TO",
-    SET_IS_SYNCHRONOUS_LOADING: "SET_IS_SYNCHRONOUS_LOADING"
+    SET_IS_SYNCHRONOUS_LOADING: "SET_IS_SYNCHRONOUS_LOADING",
 
+    LOAD_ICON: "LOAD_ICON",
 
+    TOGGLE_VIEW_MODE: "TOGGLE_VIEW_MODE"
 });
 
 export const FILE_TYPES = Object.freeze({
@@ -75,4 +77,9 @@ export const INPUT_TYPES = Object.freeze({
     USER: "USER",
     PASSWORD: "PASSWORD",
     CONFIRM_PASSWORD: "CONFIRM_PASSWORD"
-})
+});
+
+export const VIEW_MODE = Object.freeze({
+    LIST: "LIST",
+    THUMB: "THUMB"
+});

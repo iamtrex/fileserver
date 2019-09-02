@@ -1,9 +1,12 @@
 package com.rweqx.files;
 
+import net.coobird.thumbnailator.Thumbnailator;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -12,37 +15,17 @@ import java.util.*;
 
 public class FileUtils {
 
-    private static final int THUMB_SIZE = 50;
+    private static final int ICON_SIZE = 50;
+    private static final int THUMB_SIZE = 100;
 
     private static final Set IMAGE_EXTENSION_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("png", "jpg", "jpeg", "cr2")));
 
-    /**
-     * Gets a Base64 encoding of the thumbnail image of the file.
-     * Assumes the file exists.
-     *
-     * @param file
-     * @return
-     */
-    public static String getThumnailBase64(File file) {
+    public static String getIconBase64(File file) {
         try {
-            Image image;
-            if (FileUtils.getFileType(file) == FileType.IMAGE) {
-                try {
-                    // This seems too expensive. -> Need to probably do it differently.
-                    //image = Thumbnailator.createThumbnail(file, THUMB_SIZE, THUMB_SIZE);
-                    image = getDefaultImage(file);
-                } catch (Exception e) {
-                    image = getDefaultImage(file);
-                }
-            } else {
-                image = getDefaultImage(file);
-            }
-
+            BufferedImage image = getDefaultImage(file, ICON_SIZE);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ImageIO.write((RenderedImage) image, "png", out);
-
+            ImageIO.write(image, "png", out);
             byte[] data = out.toByteArray();
-
             return Base64.getEncoder().encodeToString(data);
         } catch (IOException e) {
             e.printStackTrace();
@@ -50,10 +33,38 @@ public class FileUtils {
 
         return "";
     }
+    /**
+     * Gets a Base64 encoding of the thumbnail image of the file.
+     * Assumes the file exists.
+     *
+     * @param file
+     * @return
+     */
+    public static Image getThumnailBase64(File file) {
+        BufferedImage image = null;
+        if (FileUtils.getFileType(file) == FileType.IMAGE) {
+            try {
+                // This seems too expensive. -> Need to probably do it differently.
+                image = Thumbnailator.createThumbnail(file, THUMB_SIZE, THUMB_SIZE);
+            } catch (Exception e) {}
+        }
 
-    private static Image getDefaultImage(File file) {
+        if (image == null) {
+            image = getDefaultImage(file, THUMB_SIZE);
+        }
+        return image;
+    }
+
+    private static BufferedImage getDefaultImage(File file, int size) {
         Icon icon = FileSystemView.getFileSystemView().getSystemIcon(file);
-        return ((ImageIcon) icon).getImage();
+        Image image = ((ImageIcon) icon).getImage().getScaledInstance(size, size, Image.SCALE_DEFAULT);
+
+        BufferedImage bufferedImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = bufferedImage.createGraphics();
+        graphics.drawImage(image, 0, 0, null);
+        graphics.dispose();
+
+        return bufferedImage;
     }
 
     public static FileType getFileType(File file) {
