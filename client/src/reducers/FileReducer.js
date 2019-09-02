@@ -1,75 +1,52 @@
-import initialState from "../state/InitialState"
 import {ACTION, FILE_TYPES} from "../Constants";
 
-export default (state = initialState, action) => {
+const INITIAL_STATE = Object.freeze({
+    files: null,
+    path: null,
+    isUploading: false,
+    serverUpdatedFiles: null,
+    previewFile: null
+});
+
+export default (state = INITIAL_STATE, action) => {
     switch (action.type) {
-        case ACTION.BEGIN_BROWSE_NEW_FILES:
-        case ACTION.BEGIN_DOWNLOAD_FILE:
-            return {
-                ...state,
-                isLoading: true
-            };
         case ACTION.END_BROWSE_NEW_FILES_SUCCESS:
             return {
                 ...state,
                 files: action.payload.files,
                 path: action.payload.path,
-                isLoading: false,
-                newFiles: null
+                serverUpdatedFiles: null
             };
         case ACTION.END_BROWSE_NEW_FILES_FAIL:
             return {
                 ...state,
-                newFiles: null,
-                isLoading: false
-            }
-        case ACTION.END_DOWNLOAD_FILE_FAIL:
-        case ACTION.END_DOWNLOAD_FILE_SUCCESS:
-            return {
-                ...state,
-                isLoading: false
-            };
-        case ACTION.BEGIN_PREVIEW_FILE:
-            return {
-                ...state,
-                isLoading: true
+                serverUpdatedFiles: null
             };
         case ACTION.END_PREVIEW_FILE_SUCCESS:
             if (action.payload.type === FILE_TYPES.IMAGE) {
                 return {
                     ...state,
                     isLoading: false,
-                    imageSrc: action.payload.src,
-                    previewFileType: action.payload.type,
-                    previewingFile: true
-                }
+                    previewFile: {
+                        type: action.payload.type,
+                        src: action.payload.src
+                    }
+                };
             } else if (action.payload.type === FILE_TYPES.VIDEO) {
                 return {
                     ...state,
                     isLoading: false,
-                    videoSrc: action.payload.src,
-                    previewFileType: action.payload.type,
-                    previewingFile: true,
-                    videoType: action.payload.videoType
-                }
+                    previewFile: {
+                        type: action.payload.type,
+                        src: action.payload.src,
+                        videoType: action.payload.videoType
+                    }
+                };
             }
-            console.log("FAIL SHOULD NOT HAPPEN.");
+            console.log("FAIL SHOULD NOT HAPPEN. - FILE TYPE NOT RECOGNIZED.");
             return {
-                ...state,
-                isLoading: false,
-                previewingFile: false
+                ...state
             };
-        case ACTION.FILE_NOT_PREVIEWABLE:
-            return {
-                ...state,
-                isLoading: false,
-                previewingFile: false
-            };
-        case ACTION.END_PREVIEW:
-            return {
-                ...state,
-                previewingFile: false
-            }
         case ACTION.BEGIN_UPLOAD_FILES:
             return {
                 ...state,
@@ -79,7 +56,7 @@ export default (state = initialState, action) => {
             return {
                 ...state,
                 isUploading: false,
-                newFiles: {
+                serverUpdatedFiles: {
                     path: action.payload.path
                 }
             };
@@ -87,7 +64,7 @@ export default (state = initialState, action) => {
             return {
                 ...state,
                 isUploading: false,
-                newFiles: null
+                serverUpdatedFiles: null
             };
         case ACTION.AUTHENTICATION_MISSING:
         case ACTION.LOGOUT_SUCCESS:
@@ -96,8 +73,6 @@ export default (state = initialState, action) => {
                 files: null,
                 path: null,
                 isUploading: false,
-                previewingFile: false,
-                isLoading: false,
                 previewFileType: null
             };
 

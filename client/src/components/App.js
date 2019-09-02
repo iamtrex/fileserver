@@ -1,10 +1,10 @@
 import React from 'react';
 import {BrowserRouter as Router, Route,} from 'react-router-dom'
 
-import FileBrowser from "./FileBrowser";
-import Login from "./Login";
-import Preview from "./Preview";
-import Signup from "./Signup";
+import FileBrowser from "./pages/FileBrowser";
+import Login from "./pages/Login";
+import Preview from "./pages/Preview";
+import Signup from "./pages/Signup";
 
 import 'semantic-ui-css/semantic.min.css';
 

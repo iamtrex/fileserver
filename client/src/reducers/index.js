@@ -1,7 +1,9 @@
 import {combineReducers} from 'redux'
 import FileReducer from "./FileReducer";
-import UserReducer from "./UserReducer";
+import AuthenticationReducer from "./AuthenticationReducer";
+import NavigationReducer from "./NavigationReducer";
+import ErrorReducer from "./ErrorReducer";
 
 export default combineReducers({
-    FileReducer, UserReducer
+    FileReducer, AuthenticationReducer, NavigationReducer, ErrorReducer
 })

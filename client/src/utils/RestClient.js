@@ -26,15 +26,11 @@ const handleError = (reject, response) => {
 };
 
 export const getImageSourcePath = (file) => {
-    return new Promise((resolve, reject) => {
-        resolve("rest/file?path=" + file.pathUrl);
-    });
+    return "rest/file?path=" + file.pathUrl;
 };
 
 export const getVideoSourcePath = (file) => {
-    return new Promise((resolve, reject) => {
-        resolve("rest/stream?path=" + file.pathUrl);
-    });
+    return "rest/stream?path=" + file.pathUrl;
 };
 
 export const downloadFile = (file) => {

@@ -1,5 +1,6 @@
-import {ACTION} from "../Constants";
+import {ACTION, INPUT_TYPES} from "../Constants";
 import {checkServerSession, login, logout, signup} from "../utils/RestClient";
+import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 
 export const trySignup = (user, pass) => {
     return (dispatch) => {
@@ -8,6 +9,10 @@ export const trySignup = (user, pass) => {
         });
 
         signup(user, pass).then(() => {
+            dispatch({
+                type: ACTION.SIGNUP_SUCCESS
+            });
+
             login(user, pass).then(() => {
                 dispatch({
                     type: ACTION.AUTHENTICATED_WITH_SERVER
@@ -66,32 +71,34 @@ export const checkSession = () => {
         dispatch({
             type: ACTION.BEGIN_CHECK_AUTHENTICATION_WITH_SERVER
         });
-
+        dispatch(SET_LOADING_TRUE_ACTION);
         checkServerSession().then(() => {
             dispatch({
                 type: ACTION.AUTHENTICATED_WITH_SERVER
             });
+            dispatch(SET_LOADING_FALSE_ACTION);
         }).catch((error) => {
             dispatch({
                 type: ACTION.AUTH_REJECTED_FROM_SERVER
-            })
+            });
+            dispatch(SET_LOADING_FALSE_ACTION);
         });
     }
 };
 
-export const handleUserChanged = (type, event) => {
+export const handleLoginInputChanged = (type, event) => {
     return {
-        type: type === 'USER' ? ACTION.USER_CHANGED : ACTION.PASS_CHANGED,
+        type: type === 'USER' ? ACTION.LOGIN_USER_CHANGED : ACTION.LOGIN_PASS_CHANGED,
         payload: {
             value: event.target.value
         }
     };
 };
 
-export const handleSignupUserChanged = (type, event) => {
+export const handleSignupInputChanged = (type, event) => {
     return {
-        type: type === 'USER' ? ACTION.SIGNUP_USER_CHANGED :
-            type === 'PASSWORD' ? ACTION.SIGNUP_PASS_CHANGED : ACTION.SIGNUP_CONFIRM_PASS_CHANGED,
+        type: type === INPUT_TYPES.USER ? ACTION.SIGNUP_USER_CHANGED :
+            type === INPUT_TYPES.PASSWORD ? ACTION.SIGNUP_PASS_CHANGED : ACTION.SIGNUP_CONFIRM_PASS_CHANGED,
         payload: {
             value: event.target.value
         }

@@ -1,7 +1,16 @@
 import {ACTION} from "../Constants";
-import userInitialState from "../state/UserInitialState"
 
-export default (state = userInitialState, action) => {
+const USER_INITIAL_STATE = Object.freeze({
+    "loginUsername": "",
+    "loginPassword": "",
+    "signupUsername": "",
+    "signupPassword": "",
+    "signupConfirmPassword": "",
+    "isUserAuthenticated": false,
+    "hasCheckedServerAuth": false
+});
+
+export default (state = USER_INITIAL_STATE, action) => {
     switch (action.type) {
         case ACTION.SIGNUP_USER_CHANGED:
             return {
@@ -18,30 +27,30 @@ export default (state = userInitialState, action) => {
                 ...state,
                 signupConfirmPassword: action.payload.value
             };
-        case ACTION.USER_CHANGED:
+        case ACTION.LOGIN_USER_CHANGED:
             return {
                 ...state,
-                username: action.payload.value
+                loginUsername: action.payload.value
             };
-        case ACTION.PASS_CHANGED:
+        case ACTION.LOGIN_PASS_CHANGED:
             return {
                 ...state,
-                password: action.payload.value
+                loginPassword: action.payload.value
             };
         case ACTION.AUTH_REJECTED_FROM_SERVER:
             return {
                 ...state,
                 isUserAuthenticated: false,
                 hasCheckedServerAuth: true,
-                username: "",
-                password: ""
+                loginUsername: "",
+                loginPassword: ""
             };
         case ACTION.AUTHENTICATED_WITH_SERVER:
             return {
                 ...state,
                 isUserAuthenticated: true,
-                username: "",
-                password: ""
+                loginUsername: "",
+                loginPassword: ""
             };
         case ACTION.BEGIN_CHECK_AUTHENTICATION_WITH_SERVER:
             return {
@@ -58,7 +67,14 @@ export default (state = userInitialState, action) => {
                 ...state,
                 isUserAuthenticated: false,
                 hasCheckedServerAuth: true,
-
+            };
+        case ACTION.SIGNUP_FAILURE:
+        case ACTION.SIGNUP_SUCCESS:
+            return {
+                ...state,
+                signupUsername: "",
+                signupPassword: "",
+                signupConfirmPassword: ""
             }
     }
     return state;
