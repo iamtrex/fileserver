@@ -51,6 +51,7 @@ public class RestServer {
 
         File file = FileBrowserService.getInstance().getFile(userKey, path);
         return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
+                .header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"")
                 .header("Content-Length", String.valueOf(file.length()))
                 .build();
     }

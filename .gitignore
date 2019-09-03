@@ -4,6 +4,5 @@
 *.iml
 out/*
 target/*
-/server/client/package-lock.json
 /client/build/
 /client/package-lock.json
