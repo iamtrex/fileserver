@@ -2,6 +2,7 @@ package com.rweqx.rest;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.rweqx.authentication.AuthenticationFilter;
 import com.rweqx.files.FileBrowserService;
 import com.rweqx.sql.SecureStore;
 
@@ -12,9 +13,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.util.logging.Logger;
 
 @Path("/")
 public class RestLogin {
+
+    private static final Logger LOGGER  =  Logger.getLogger(RestLogin.class.getName());
 
     @Inject
     private SecureStore secureStore;
@@ -23,6 +27,8 @@ public class RestLogin {
     @Path("/logout")
     @GET
     public Response logout(@CookieParam("session-token") Cookie cookie, @Context HttpServletRequest request) {
+        // Clear HTTP Session and cookies.
+
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
@@ -33,6 +39,11 @@ public class RestLogin {
         return Response.ok().cookie(newCookie).build();
     }
 
+    /**
+     * Signs up the user by creating appropriate entries and folder structure within the db.
+     * @param json
+     * @return
+     */
     @PermitAll
     @Path("/signup")
     @POST
@@ -47,7 +58,6 @@ public class RestLogin {
         boolean success = secureStore.attemptSaveUser(username, password);
 
         if (success) {
-            // Create user's folder.
             FileBrowserService.getInstance().setupUser(secureStore.getUserKey(username));
             return Response.ok().build();
         }
@@ -56,21 +66,12 @@ public class RestLogin {
     }
 
 
+    // TODO - Rewrite. Do not use cookie-based auth. Also this request shouldn't be the one setting such auths.
     @Path("/login")
     @RolesAllowed("ADMIN")
     @GET
     @Produces("application/json")
     public Response login(@CookieParam("session-token") Cookie cookie, @Context HttpServletRequest request) {
-        if (request.getSession(false) != null) {
-            System.out.println("Has a session!");
-        } else {
-            System.out.println("Doesnt' have a session!");
-        }
-
-        if (cookie != null) {
-            System.out.println("Hello world it has a cookie!");
-        }
-
         String stayLoggedIn = request.getHeader("stay-logged-in");
         if (stayLoggedIn != null && stayLoggedIn.equalsIgnoreCase("TRUE")) {
             // Set cookies.

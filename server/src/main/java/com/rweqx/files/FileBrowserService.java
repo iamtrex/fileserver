@@ -3,6 +3,7 @@ package com.rweqx.files;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.rweqx.exceptions.ServerException;
+import com.rweqx.utils.FileUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 import java.awt.*;
@@ -20,7 +21,7 @@ public class FileBrowserService {
     private final Logger LOGGER = Logger.getLogger(FileBrowserService.class.getName());
 
     private static FileBrowserService instance;
-    private final String root = "D:/Server/";
+    private final String root = "D:/ServerNew/";
 
     public static FileBrowserService getInstance() {
         if (instance == null) {
@@ -123,6 +124,10 @@ public class FileBrowserService {
     private FileBrowserService() {
     }
 
+    /**
+     * Setup user by creating their folder in the filesystem.
+     * @param userKey - The user's unique identifying key.
+     */
     public void setupUser(String userKey) {
         String path = root + userKey;
 

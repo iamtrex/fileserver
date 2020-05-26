@@ -9,18 +9,21 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.ApplicationPath;
 
+/**
+ * Configurates Server Binding.
+ */
 @ApplicationPath("rest")
 public class ApplicationConfig extends ResourceConfig {
     public ApplicationConfig() {
         packages("com.rweqx.rest");
         register(AuthenticationFilter.class);
-        //register(RangeResponseFilter.class);
         register(MultiPartFeature.class);
         register(new ApplicationBinder());
 
     }
 
 
+    // TODO - probably want to secure the DB? :)
     private final String DB = "jdbc:derby:db;create=true";
     private final String USER = "";
     private final String PASS = "";

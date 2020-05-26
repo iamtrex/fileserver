@@ -1,5 +1,6 @@
-package com.rweqx.files;
+package com.rweqx.utils;
 
+import com.rweqx.files.FileType;
 import net.coobird.thumbnailator.Thumbnailator;
 
 import javax.imageio.ImageIO;

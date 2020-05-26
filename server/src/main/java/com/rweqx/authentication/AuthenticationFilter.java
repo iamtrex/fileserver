@@ -20,12 +20,17 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.logging.Logger;
 
-
+/**
+ * Manages authentication rights.
+ * Currently very flawed, will probably be scrapped.
+ */
 @Provider
 public class AuthenticationFilter implements ContainerRequestFilter {
-
     private final int LOGIN_DURATION = 30; //Minutes.
+
+    private static final Logger LOGGER  =  Logger.getLogger(AuthenticationFilter.class.getName());
 
     @Inject
     private SecureStore secureStore;
@@ -45,14 +50,14 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
         if (!method.isAnnotationPresent(PermitAll.class)) {
             if (method.isAnnotationPresent(DenyAll.class)) {
-                System.out.println("Access blocked!");
+                LOGGER.info("Access blocked!");
                 requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("Access blocked").build());
                 return;
             }
         }
 
         if (!method.isAnnotationPresent(RolesAllowed.class)) {
-            System.out.println("Warning - method is not protected.");
+            LOGGER.info("Warning - method is not protected.");
             return;
         }
 
@@ -60,42 +65,39 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         final Set<String> rolesSet = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(rolesAnnotation.value())));
 
         if (hasValidSession(requestContext, rolesSet)) {
-            System.out.println("Authenticated with Session");
+            LOGGER.info("Authenticated with Session");
             return;
         } else if (hasValidCookies(requestContext, rolesSet)) {
-            System.out.println("Authenticated with Cookies");
+            LOGGER.info("Authenticated with Cookies");
             return;
         } else if (hasValidBasicAuthentication(requestContext, rolesSet)) {
-            System.out.println("Authenticated with Username and Password");
+            LOGGER.info("Authenticated with Username and Password");
 
             setSession(requestContext);
             return;
         }
 
-        System.out.println("Aborting cuz failed all auths!");
+        LOGGER.info("Aborting cuz failed all auths!");
         requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("Authorization is missing").build());
     }
 
+    //TODO - This session technique is unsafe. Convert to using a proper JWT token-based authentication.
     private void setSession(final ContainerRequestContext requestContext) {
-        HttpSession session = request.getSession();
-        if (session.getAttribute("authenticated-user") == null) { // Necessary?
-            final StringTokenizer tokenizer = getAuthentiacationTokenizer(requestContext);
-            final String user = tokenizer.nextToken();
+        final HttpSession session = request.getSession();
+        final StringTokenizer tokenizer = getAuthentiacationTokenizer(requestContext);
+        final String user = tokenizer.nextToken();
 
-            final String key = secureStore.getUserKey(user);
-            if (key == null) {
-                requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("User key invalid.").build());
-            }
-
-            session.setAttribute("authenticated-user", key);
-
-            session.setAttribute("authentication-token", "AUTH!");
-            LocalDateTime date = LocalDateTime.now().plus(LOGIN_DURATION, ChronoUnit.MINUTES);
-
-            session.setAttribute("authentication-expiry-date", date);
-        } else {
-            System.out.println("Somehow already has a session!!!");
+        final String key = secureStore.getUserKey(user);
+        if (key == null) {
+            requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).entity("User key is invalid.").build());
         }
+
+        session.setAttribute("authenticated-user", key);
+
+        session.setAttribute("authentication-token", "AUTH!");
+        LocalDateTime date = LocalDateTime.now().plus(LOGIN_DURATION, ChronoUnit.MINUTES);
+
+        session.setAttribute("authentication-expiry-date", date);
     }
 
 
@@ -119,11 +121,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             session.invalidate();
         }
 
-        System.out.println("Session will last until: " + date.toString());
+        LOGGER.info("Session will last until: " + date.toString());
         return valid;
     }
 
-
+    // TODO - Probably not the correct implementation of cookies either :)
     private boolean hasValidCookies(final ContainerRequestContext requestContext, final Set<String> rolesSet) {
         final Map<String, Cookie> cookies = requestContext.getCookies();
         if (cookies == null || cookies.get("session-token") == null) {
@@ -173,25 +175,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
 
     private boolean isUserAllowed(final String username, final String password, final Set<String> rolesSet) {
-        // TODO actually map to users and check if the hash'd password matches the documentation.
-        boolean isAllowed = false;
-
-        if (secureStore.isValidUser(username, password)) {
-            return true;
-            //TODO roles.
-        }
-
-        if (username.equals("localhcpuser") && password.equals("Password1")) {
-            String userRole = "ADMIN";
-            if (rolesSet.contains(userRole)) {
-                isAllowed = true;
-            }
-        } else if (username.equals("cherie") && password.equals("123")) {
-            String userRole = "ADMIN";
-            if (rolesSet.contains(userRole)) {
-                isAllowed = true;
-            }
-        }
-        return isAllowed;
+        //TODO - Check if user has appropriate roles for this particular request.
+        return secureStore.isValidUser(username, password);
     }
 }

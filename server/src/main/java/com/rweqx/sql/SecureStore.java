@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 
 public class SecureStore {
 
+    private final String ENCODING_ALGORITHM = "SHA-256";
+
     private final Logger LOGGER = Logger.getLogger(SecureStore.class.getName());
     private Connection connection;
 
@@ -24,10 +26,15 @@ public class SecureStore {
         }
     }
 
+    /**
+     * Creates SQL Table as SecureStore if it doesn't already exist.
+     */
     private void createStore() {
         try {
             LOGGER.info("Trying to create table");
-            PreparedStatement statement = connection.prepareStatement("CREATE TABLE users (username VARCHAR(255), password VARCHAR(255), salt VARCHAR(255), user_key VARCHAR(255))");
+            PreparedStatement statement = connection.prepareStatement(
+                    "CREATE TABLE users (username VARCHAR(255), password VARCHAR(255), " +
+                            "salt VARCHAR(255), user_key VARCHAR(255))");
             boolean s = statement.execute();
         } catch (SQLException e) {
             if (!e.getSQLState().equalsIgnoreCase("X0Y32")) {
@@ -36,10 +43,14 @@ public class SecureStore {
         }
     }
 
+    /**
+     * Check if username/password combination exists in our DB.
+     * @return - true if valid username password combination.
+     */
     public boolean isValidUser(final String username, final String password) {
-
         try {
-            final PreparedStatement statement = connection.prepareStatement("SELECT username, password, salt FROM users WHERE username = ?");
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT username, password, salt FROM users WHERE username = ?");
             statement.setString(1, username);
 
             final ResultSet rs = statement.executeQuery();
@@ -47,7 +58,9 @@ public class SecureStore {
             if (rs.next()) {
                 final String serverHashedPassword = rs.getString(2);
                 final String serverSalt = rs.getString(3);
-                final String hashedPassword = hashPassword(password, Base64.getDecoder().decode(serverSalt.getBytes(StandardCharsets.UTF_8)));
+                final String hashedPassword = hashPassword(password,
+                        Base64.getDecoder().decode(serverSalt.getBytes(StandardCharsets.UTF_8)));
+                // TODO - Remove.
                 LOGGER.info("Salted hash from server was " + serverHashedPassword);
                 LOGGER.info("Server salt was " + serverSalt);
                 LOGGER.info("Salted hash for password was " + hashedPassword);
@@ -61,55 +74,14 @@ public class SecureStore {
         return false;
     }
 
-    private byte[] generateSalt() {
-        final SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[16];
-        random.nextBytes(salt);
-        return salt;
-    }
-
-    private String hashPassword(final String password, final byte[] salt) {
-        try {
-            final MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-
-            byte[] hashedPassword = md.digest(password.getBytes(StandardCharsets.UTF_8));
-
-            final StringBuilder builder = new StringBuilder();
-            for (byte b : hashedPassword) {
-                builder.append(String.format("%02x", b));
-            }
-            return builder.toString();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public String getUserKey(final String username) {
-
-        try {
-            final PreparedStatement statement = connection.prepareStatement("SELECT (user_key) FROM users WHERE username = ?");
-            statement.setString(1, username);
-
-            final ResultSet rs = statement.executeQuery();
-
-            if (rs.next()) {
-                return rs.getString(1);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
+    /**
+     * Saves the user with salted password into database.
+     * @param username
+     * @param password
+     * @return
+     */
     public boolean attemptSaveUser(final String username, final String password) {
         // TODO CHECK TO MAKE SURE USERNAME DOESN'T ALREADY EXIST!
-
-
         final byte[] salt = generateSalt();
         final String hashedPassword = hashPassword(password, salt);
 
@@ -119,10 +91,14 @@ public class SecureStore {
         }
 
         SecureRandom random = new SecureRandom();
+
+        // In theory we should confirm that this doesn't key-clash, even if the probability is < 1/2^63
         final String userKey = String.valueOf(Math.abs(random.nextLong()));
 
+
         try {
-            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (username, password, salt, user_key) VALUES (?, ?, ?, ?)");
+            PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO users (username, password, salt, user_key) VALUES (?, ?, ?, ?)");
 
             statement.setString(1, username);
             statement.setString(2, hashedPassword);
@@ -144,5 +120,55 @@ public class SecureStore {
             ex.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * Get User's unique id key from username.
+     * @return
+     */
+    public String getUserKey(final String username) {
+
+        try {
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT (user_key) FROM users WHERE username = ?");
+            statement.setString(1, username);
+
+            final ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private byte[] generateSalt() {
+        final SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+        return salt;
+    }
+
+    private String hashPassword(final String password, final byte[] salt) {
+        try {
+            final MessageDigest md = MessageDigest.getInstance(ENCODING_ALGORITHM);
+            md.update(salt);
+
+            byte[] hashedPassword = md.digest(password.getBytes(StandardCharsets.UTF_8));
+
+            final StringBuilder builder = new StringBuilder();
+            for (byte b : hashedPassword) {
+                builder.append(String.format("%02x", b));
+            }
+            return builder.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

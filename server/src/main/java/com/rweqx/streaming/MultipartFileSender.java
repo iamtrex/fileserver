@@ -17,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Allows MultipartFile Sending - aka video preview/streaming in the client.
+ */
 public class MultipartFileSender {
 
     private static final Logger LOGGER = Logger.getLogger(MultipartFileSender.class.getName());
