@@ -2,10 +2,13 @@ package com.rweqx.rest;
 
 
 import com.rweqx.authentication.AuthenticationFilter;
+import com.rweqx.files.FileBrowserService;
 import com.rweqx.sql.SecureStore;
+import com.rweqx.utils.PropertyUtils;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 
 import javax.ws.rs.ApplicationPath;
 
@@ -15,10 +18,11 @@ import javax.ws.rs.ApplicationPath;
 @ApplicationPath("rest")
 public class ApplicationConfig extends ResourceConfig {
     public ApplicationConfig() {
-        packages("com.rweqx.rest");
-        register(AuthenticationFilter.class);
-        register(MultiPartFeature.class);
         register(new ApplicationBinder());
+        register(AuthenticationFilter.class);
+        register(RolesAllowedDynamicFeature.class);
+        register(MultiPartFeature.class);
+        packages("com.rweqx.rest");
 
     }
 
@@ -31,7 +35,10 @@ public class ApplicationConfig extends ResourceConfig {
     private class ApplicationBinder extends AbstractBinder {
         @Override
         protected void configure() {
+            PropertyUtils properties = new PropertyUtils();
+            bind(properties).to(PropertyUtils.class);
             bind(new SecureStore(DB, USER, PASS)).to(SecureStore.class);
+            bind(new FileBrowserService(properties)).to(FileBrowserService.class);
         }
     }
 }

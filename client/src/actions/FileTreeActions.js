@@ -9,7 +9,8 @@ export const toggleViewMode = (viewMode) => {
             viewMode: viewMode
         }
     }
-}
+};
+
 export const browseUp = (currPath) => {
     return (dispatch) => {
         if (!currPath.includes("%2F")) {

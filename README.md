@@ -21,11 +21,11 @@ The details are TBD, but looking for the following functionality:
 
 
 Setup Instructions (~ 5 minutes)
-* In the FileBrowserService.java class, change the ROOT directory to where you want to store your server's files.
+* Check ServerConfigurations.properties and change the values to something appropriate!
 * Get instance of Tomcat http://tomcat.apache.org/ (version 8+ required)
 * Deploy exploded war file to <tomcat-dir>/webapps/<app-name>/
     * I personally used IntelliJ and just set it to create exploded war with all the dependencies under the server directory.
-* Copy web.xml and context.xml into <tomcat-dir>/webapps/<app-name>/WEB-INF
+* Copy web.xml and rewrite.config into <tomcat-dir>/webapps/<app-name>/WEB-INF
 * Copy context.xml into a new folder named <tomcat-dir>/webapps/<app-name>/META-INF
 * Run npm install in /client
 * In package.json, configure the output directory for the COPY command to <tomcat-dir>/webapps/<app-name> 

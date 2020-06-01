@@ -92,7 +92,11 @@
             <artifactId>jaxrs-range-filter</artifactId>
             <version>1.0.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>3.10.3</version>
+        </dependency>
 
     </dependencies>
 

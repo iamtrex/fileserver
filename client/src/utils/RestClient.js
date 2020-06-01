@@ -8,6 +8,7 @@ export const getFilesFromNetwork = (pathUrl) => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: "GET",
+            headers: getHeaders(),
             url: "rest/files?path=" + pathUrl,
             contentType: "application/json",
             success: response => resolve(response.files),
@@ -37,6 +38,20 @@ export const getThumbnailPath = (file) => {
     return "rest/thumbnail?path=" + file.pathUrl; //TODO make these all just take path?
 };
 
+export const getThumbnailBase64 = (path) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "GET",
+            headers: getHeaders(),
+            url: "rest/thumbnail?path=" + path,
+            success: data => {
+                return resolve("data:image/png;base64," + data);
+            },
+            error: response => handleError(reject, response)
+        });
+    });
+};
+
 export const downloadFile = (file) => {
     return new Promise((resolve, reject) => {
         window.open("rest/file?path=" + file.pathUrl, '_blank');
@@ -44,17 +59,24 @@ export const downloadFile = (file) => {
     });
 };
 
-
 export const login = (user, pass) => {
     return new Promise((resolve, reject) => {
         console.log("Attempting login with ", user, " ", pass);
         $.ajax({
-            type: "GET",
+            type: "POST",
             headers: {
-                'Authorization': 'Basic ' + btoa(user + ':' + pass),
+                "Content-type": "application/x-www-form-urlencoded",
             },
             url: "rest/login",
-            success: () => {
+            data: $.param({"username": user, "password": pass}),
+            success: (response) => {
+                console.log(response);
+                let token = response.token;
+                if (!token) {
+                    handleError(reject, "No token returned");
+                }
+
+                window.localStorage.setItem("token", token);
                 resolve();
             },
             error: response => handleError(reject, response)
@@ -68,6 +90,7 @@ export const logout = (s) => {
         console.log("Attempting logout");
         $.ajax({
             type: "GET",
+            headers: getHeaders(),
             url: "rest/logout",
             success: () => {
                 resolve();
@@ -103,8 +126,8 @@ export const checkServerSession = () => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: "GET",
-            headers: {},
-            url: "rest/login",
+            headers: getHeaders(),
+            url: "rest/isAuthenticated",
             success: () => {
                 resolve();
             },
@@ -125,6 +148,7 @@ export const uploadFiles = (files, path) => {
                 data.append('name', file.name);
 
                 fetch("rest/upload?path=" + path, {
+                    headers: getHeaders(),
                     method: "POST",
                     body: data
                 }).then((result) => {
@@ -151,4 +175,15 @@ export const uploadFiles = (files, path) => {
 
         Promise.all(promises).then(() => resolve());
     });
+};
+
+const getHeaders = () => {
+    let headers = {};
+
+    let token = window.localStorage.getItem("token");
+    if (token) {
+        headers.Authorization = "Bearer " + token;
+    }
+
+    return headers;
 };

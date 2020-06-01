@@ -1,11 +1,14 @@
 package com.rweqx.sql;
 
+import com.rweqx.authentication.AuthorizationRoles;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.util.Base64;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class SecureStore {
@@ -170,5 +173,10 @@ public class SecureStore {
         }
 
         return null;
+    }
+
+    public boolean isUserInRole(String username, String role) {
+        // TODO implement.
+        return true;
     }
 }

@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.rweqx.exceptions.ServerException;
 import com.rweqx.utils.FileUtils;
+import com.rweqx.utils.PropertyUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 import java.awt.*;
@@ -17,17 +18,15 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class FileBrowserService {
+    private PropertyUtils properties;
 
     private final Logger LOGGER = Logger.getLogger(FileBrowserService.class.getName());
 
-    private static FileBrowserService instance;
-    private final String root = "D:/ServerNew/";
+    private String root;
 
-    public static FileBrowserService getInstance() {
-        if (instance == null) {
-            instance = new FileBrowserService();
-        }
-        return instance;
+    public FileBrowserService(PropertyUtils properties) {
+        this.properties = properties;
+        this.root = properties.getFileServerRoot();
     }
 
     public Image getFileThumbnail(String userKey, String path) {
@@ -121,11 +120,9 @@ public class FileBrowserService {
         return object;
     }
 
-    private FileBrowserService() {
-    }
-
     /**
      * Setup user by creating their folder in the filesystem.
+     *
      * @param userKey - The user's unique identifying key.
      */
     public void setupUser(String userKey) {
