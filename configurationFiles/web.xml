@@ -21,15 +21,6 @@
                       http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
   version="4.0"
   metadata-complete="true">
-
-  <display-name>Welcome to Tomcat</display-name>
-  <description>
-     Welcome to Tomcat
-  </description>
-  <!--
-<error-page>
-	<error-code>404</error-code>
-	<location>/index.html</location>
-</error-page>
-  -->
+  <display-name>FileServer</display-name>
+  
 </web-app>
