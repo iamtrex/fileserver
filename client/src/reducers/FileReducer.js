@@ -6,11 +6,39 @@ const INITIAL_STATE = Object.freeze({
     isUploading: false,
     serverUpdatedFiles: null,
     previewFile: null,
-    viewMode: VIEW_MODE.LIST
+    viewMode: VIEW_MODE.LIST,
+    showCreateFolderDialog: false,
+    isCreateFolderNameValid: false,
+    isCreateFolderNameInvalid: false
 });
 
 export default (state = INITIAL_STATE, action) => {
     switch (action.type) {
+        case ACTION.CREATE_FOLDER_NAME_CHANGE:
+            return {
+                ...state,
+                isCreateFolderNameValid: action.payload.isValid,
+                isCreateFolderNameInvalid: !action.payload.isValid
+            };
+        case ACTION.SHOW_CREATE_FOLDER_DIALOG:
+            return {
+                ...state,
+                isCreateFolderDialogShowing: action.payload.show
+            };
+        case ACTION.END_CREATE_FOLDER_SUCCESS:
+            return {
+                ...state,
+                serverUpdatedFiles: {
+                    path: action.payload.path
+                },
+                isCreateFolderDialogShowing: false
+            };
+        case ACTION.END_CREATE_FOLDER_FAIL:
+            return {
+                ...state,
+                serverUpdatedFiles: null,
+                isCreateFolderDialogShowing: false
+            };
         case ACTION.END_BROWSE_NEW_FILES_SUCCESS:
             return {
                 ...state,
@@ -21,6 +49,7 @@ export default (state = INITIAL_STATE, action) => {
         case ACTION.END_BROWSE_NEW_FILES_FAIL:
             return {
                 ...state,
+                files: [],
                 serverUpdatedFiles: null
             };
         case ACTION.END_PREVIEW_FILE_SUCCESS:
@@ -69,25 +98,19 @@ export default (state = INITIAL_STATE, action) => {
             };
         case ACTION.AUTHENTICATION_MISSING:
         case ACTION.LOGOUT_SUCCESS:
-            return {
-                ...state,
-                files: null,
-                path: null,
-                isUploading: false,
-                previewFileType: null
-            };
+            return INITIAL_STATE;
         case ACTION.LOAD_ICON:
             let files = [...state.files];
             files[action.payload.key].thumbnailSrc = action.payload.src;
             return {
                 ...state,
                 files: files
-            }
+            };
         case ACTION.TOGGLE_VIEW_MODE:
             return {
                 ...state,
                 viewMode: action.payload.viewMode
-            }
+            };
     }
     return state;
 };

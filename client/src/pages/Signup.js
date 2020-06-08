@@ -1,12 +1,12 @@
-import "../../style/FileBrowser.less"
+import "../style/FileBrowser.less"
 import React, {Component} from "react"
 
-import {checkSession, handleSignupInputChanged, trySignup} from "../../actions"
+import {checkSession, handleSignupInputChanged, trySignup} from "../actions"
 import {connect} from "react-redux"
 import {Button, Form, Grid, Header, Image, Segment} from 'semantic-ui-react'
-import {navigator} from "../Navigator";
-import {INPUT_TYPES, PAGES} from "../../Constants";
-import {navigateTo} from "../../actions/NavigationActions";
+import {navigator} from "./Navigator";
+import {INPUT_TYPES, PAGES} from "../Constants";
+import {navigateTo} from "../actions/NavigationActions";
 
 
 class Signup extends Component {

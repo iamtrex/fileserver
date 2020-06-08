@@ -1,12 +1,12 @@
-import style from "../../style/FileBrowser.less"
+import style from "../style/FileBrowser.less"
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
 import {Dimmer, List, Loader} from 'semantic-ui-react'
 
-import {navigator} from "../Navigator";
-import {FILE_TYPES, PAGES, VIEW_MODE} from "../../Constants";
-import {FileListItem} from "../ListItem/FileListItem";
+import {navigator} from "./Navigator";
+import {FILE_TYPES, PAGES, VIEW_MODE} from "../Constants";
+import {FileListItem} from "../components/listItems/FileListItem";
 import {
     attemptDownloadFile,
     attemptLoadThumbnail,
@@ -14,19 +14,21 @@ import {
     attemptUploadFile,
     browseUp,
     loadDirectory,
+    showCreateFolderDialog,
     toggleViewMode,
     tryLogout
-} from "../../actions";
-import {navigateTo} from "../../actions/NavigationActions";
-import {FileThumbItem} from "../ListItem/FileThumbItem";
+} from "../actions";
+import {navigateTo} from "../actions/NavigationActions";
+import {FileThumbItem} from "../components/listItems/FileThumbItem";
 import CardColumns from "react-bootstrap/CardColumns";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
+import CreateFolderDialog from "../components/dialogs/CreateFolderDialog";
 
 class FileBrowser extends Component {
 
     componentDidMount() {
-        if (this.props.files == null) { // TODO Might be scary? (Causing infinite loops)
+        if (this.props.files === null) { // TODO Might be scary? (Causing infinite loops)
             this.props.loadRootDirectory();
         }
     }
@@ -55,7 +57,8 @@ class FileBrowser extends Component {
 
         // If server has updated files, we should update them. // TODO Could this not be done automatically?
         if (this.props.serverUpdatedFiles && this.props.serverUpdatedFiles.path === this.props.path) {
-            this.props.loadDirectory(this.props.serverUpdatedFiles.path);
+            console.log("Server has updated files");
+            this.props.loadDirectory(this.props.path);
         }
 
         const items = this.props.files ? this.props.files.map((file, index) => {
@@ -83,6 +86,7 @@ class FileBrowser extends Component {
         }) : [];
 
         return <div>
+            <CreateFolderDialog/>
             <h1>Files</h1>
             {this.props.isLoading ?
                 <Dimmer active inverted>
@@ -94,6 +98,10 @@ class FileBrowser extends Component {
                         <Button variant={"secondary"}
                                 onClick={this.props.browseUp.bind(this, this.props.path)}>Up</Button>
                         <Button variant={"secondary"} onClick={this.chooseFile}>Upload</Button>
+                        <Button variant={"secondary"}
+                                onClick={this.props.showCreateFolderDialog.bind(this, true)}>
+                            New Folder
+                        </Button>
                         <Button variant={"secondary"} onClick={this.props.tryLogout}>Log Out</Button>
                     </ButtonGroup>
                     <hr/>
@@ -122,14 +130,11 @@ class FileBrowser extends Component {
                             })}
                         </CardColumns> : null
                     }
-
-
                 </div>
             }
         </div>
     }
 }
-
 
 const mapStateToProps = state => ({
     expectedPage: state.NavigationReducer.expectedPage,
@@ -152,7 +157,8 @@ const mapDispatchToProps = dispatch => ({
     attemptDownloadFile: (file) => dispatch(attemptDownloadFile(file)),
     tryLogout: () => dispatch(tryLogout()),
     attemptLoadThumbnail: path => dispatch(attemptLoadThumbnail(path)),
-    toggleViewMode: viewMode => dispatch(toggleViewMode(viewMode))
+    toggleViewMode: viewMode => dispatch(toggleViewMode(viewMode)),
+    showCreateFolderDialog: (show) => dispatch(showCreateFolderDialog(show))
 });
 
 export default connect(

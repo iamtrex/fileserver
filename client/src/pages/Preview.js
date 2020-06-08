@@ -1,14 +1,14 @@
-import styles from "../../style/Previewer.less";
+import styles from "../style/Previewer.less";
 
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
 import {Button, Dimmer, Loader} from 'semantic-ui-react'
-import {FILE_TYPES, PAGES} from "../../Constants";
-import {ImagePreviewer} from "../previewers/ImagePreviewer";
-import {VideoPreviewer} from "../previewers/VideoPreviewer";
-import {navigator} from "../Navigator";
-import {navigateTo} from "../../actions/NavigationActions";
+import {FILE_TYPES, PAGES} from "../Constants";
+import {ImagePreviewer} from "../components/previewers/ImagePreviewer";
+import {VideoPreviewer} from "../components/previewers/VideoPreviewer";
+import {navigator} from "./Navigator";
+import {navigateTo} from "../actions/NavigationActions";
 
 class Preview extends Component {
     render() {

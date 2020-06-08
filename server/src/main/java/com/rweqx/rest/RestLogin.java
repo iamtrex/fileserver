@@ -64,7 +64,7 @@ public class RestLogin {
     @PermitAll
     @Path("/signup")
     @POST
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response signup(String json) {
         JsonParser parser = new JsonParser();

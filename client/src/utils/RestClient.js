@@ -1,6 +1,6 @@
 import $ from "jquery";
 
-import {NETWORK_FAIL_REASONS} from "../Constants";
+import {CREATE_OBJECT_TYPES, NETWORK_FAIL_REASONS} from "../Constants";
 /*
  * Function collection that handles all communciation with Java server.
  * Only src tags like those in videos and image sources hit the server directly.
@@ -108,6 +108,26 @@ export const checkServerSession = () => {
             type: "GET",
             headers: getHeaders(),
             url: "rest/isAuthenticated",
+            success: () => {
+                resolve();
+            },
+            error: response => defaultHandleError(reject, response)
+        });
+    });
+};
+
+export const createFolder = (path, name) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "POST",
+            headers: getHeaders(),
+            url: "rest/create",
+            contentType: "application/json",
+            data: JSON.stringify({
+                "type": CREATE_OBJECT_TYPES.FOLDER,
+                "path": path,
+                "name": name
+            }),
             success: () => {
                 resolve();
             },

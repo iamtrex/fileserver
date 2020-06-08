@@ -1,13 +1,16 @@
 package com.rweqx.rest;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.rweqx.authentication.AllowCookieAuthentication;
 import com.rweqx.authentication.Secured;
+import com.rweqx.exceptions.ServerException;
 import com.rweqx.files.FileBrowserService;
 import com.rweqx.streaming.MultipartFileSender;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
@@ -87,7 +90,8 @@ public class RestServer {
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response uploadFile(@Context SecurityContext securityContext, @DefaultValue("") @QueryParam("path") String path, @FormDataParam("file") InputStream fileStream, @FormDataParam("file") FormDataContentDisposition fileDetail) {
+    public Response uploadFile(@Context SecurityContext securityContext, @DefaultValue("") @QueryParam("path") String path,
+                               @FormDataParam("file") InputStream fileStream, @FormDataParam("file") FormDataContentDisposition fileDetail) {
         final String userKey = securityContext.getUserPrincipal().getName();
 
         if (fileStream == null || fileDetail == null) {
@@ -98,6 +102,26 @@ public class RestServer {
         System.out.println(fileDetail.getSize());
         fileService.uploadFile(userKey, path, fileStream, fileDetail);
         return Response.ok().build();
+    }
+
+    @PermitAll
+    @POST
+    @Path("/create")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response create(@Context SecurityContext securityContext, String json) {
+        final String userKey = securityContext.getUserPrincipal().getName();
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        final String type = obj.get("type").getAsString();
+        final String path = obj.get("path").getAsString();
+        final String name = obj.get("name").getAsString();
+
+        try {
+            fileService.createObject(userKey, type, path, name);
+            return Response.ok().build();
+        } catch(ServerException e) {
+            return Response.status(e.getCode()).entity(e.getMessage()).build();
+        }
     }
 
     @AllowCookieAuthentication

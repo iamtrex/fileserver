@@ -1,5 +1,5 @@
 import {ACTION} from "../Constants";
-import {downloadFile, getThumbnailBase64, uploadFiles} from "../utils/RestClient";
+import {createFolder, downloadFile, getThumbnailBase64, uploadFiles} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 import {handleError} from "./ActionOnErrorHandler";
 
@@ -32,6 +32,43 @@ export const attemptLoadThumbnail = (file) => {
         });
     }
 
+};
+
+export const showCreateFolderDialog = (show) => {
+    return {
+        type: ACTION.SHOW_CREATE_FOLDER_DIALOG,
+        payload: {
+            show: show
+        }
+    }
+};
+
+export const onCreateFolderNameChange = (isValid) => {
+    return {
+        type: ACTION.CREATE_FOLDER_NAME_CHANGE,
+        payload: {
+            isValid: isValid
+        }
+    }
+};
+
+export const attemptCreateFolder = (path, name) => {
+    return (dispatch) => {
+        dispatch({
+            type: ACTION.BEGIN_CREATE_FOLDER,
+        });
+
+        createFolder(path, name).then(() => {
+            dispatch({
+                type: ACTION.END_CREATE_FOLDER_SUCCESS,
+                payload: {
+                    path: path
+                }
+            });
+        }).catch((error) => {
+            handleError(dispatch, error, ACTION.END_CREATE_FOLDER_FAIL);
+        });
+    }
 };
 
 export const attemptUploadFile = (path, e) => {

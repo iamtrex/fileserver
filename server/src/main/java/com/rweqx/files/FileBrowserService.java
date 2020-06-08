@@ -143,7 +143,7 @@ public class FileBrowserService {
         LOGGER.info("Saving file with path - " + filePath);
 
         if (!isPathAccessValid(userKey, fullPath)) {
-            throw new ServerException(401, "User does not have authorization to download from this address " + filePath);
+            throw new ServerException(401, "User does not have authorization to upload to this path " + filePath);
         }
         File file = new File(fullPath);
         try {
@@ -151,6 +151,42 @@ public class FileBrowserService {
         } catch (IOException e) {
             e.printStackTrace();
             throw new ServerException(500, "Failed to write file for some reason");
+        }
+    }
+
+    public void createObject(String userKey, String type, String directoryPath, String name) {
+        String objectPath = directoryPath + "/" + name;
+        String fullPath = prependPath(userKey, objectPath);
+
+        if (!isPathAccessValid(userKey, fullPath)) {
+            throw new ServerException(403, "User does not have authorization to create to this path " + objectPath);
+        }
+
+
+        // Check the current path is already existing:
+        if (!directoryExists(prependPath(userKey, directoryPath))) {
+            throw new ServerException(403, "Invalid path " + objectPath);
+        }
+
+        switch(type) {
+            case "FOLDER":
+                createFolder(fullPath);
+                break;
+            default:
+                throw new ServerException(400, "Bad request");
+        }
+    }
+
+    private void createFolder(String fullPath) {
+        File file = new File(fullPath);
+        if (file.exists()) {
+            throw new ServerException(400, "Already exists");
+        }
+
+        file.mkdir();
+
+        if (!file.exists()) {
+            throw new ServerException(500, "Failed to create folder");
         }
     }
 
@@ -175,6 +211,11 @@ public class FileBrowserService {
         }
     }
 
+    private boolean directoryExists(String path) {
+        File file = new File(path);
+        return file.exists();
+    }
+
     private boolean isPathAccessValid(String userKey, String path) {
         File file = new File(path);
         String prependKey = root + userKey;
@@ -185,5 +226,4 @@ public class FileBrowserService {
         }
         return true;
     }
-
 }
