@@ -4,7 +4,7 @@ import {FILE_TYPES} from "../../Constants";
 import React from "react"
 
 export const FileListItem = (props) => {
-    return <List.Item>
+    return <List.Item onClick={props.i.selectionOnClick}>
         {props.i.imageSrc ? <Image src={props.i.imageSrc}/> : null}
         <List.Content>
             <ListHeader><a onClick={props.i.selectionOnClick}>{props.i.header}</a></ListHeader>

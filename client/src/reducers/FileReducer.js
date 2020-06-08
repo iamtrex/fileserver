@@ -4,7 +4,6 @@ const INITIAL_STATE = Object.freeze({
     files: null,
     path: null,
     isUploading: false,
-    serverUpdatedFiles: null,
     previewFile: null,
     viewMode: VIEW_MODE.LIST,
     showCreateFolderDialog: false,
@@ -28,29 +27,23 @@ export default (state = INITIAL_STATE, action) => {
         case ACTION.END_CREATE_FOLDER_SUCCESS:
             return {
                 ...state,
-                serverUpdatedFiles: {
-                    path: action.payload.path
-                },
                 isCreateFolderDialogShowing: false
             };
         case ACTION.END_CREATE_FOLDER_FAIL:
             return {
                 ...state,
-                serverUpdatedFiles: null,
                 isCreateFolderDialogShowing: false
             };
         case ACTION.END_BROWSE_NEW_FILES_SUCCESS:
             return {
                 ...state,
                 files: action.payload.files,
-                path: action.payload.path,
-                serverUpdatedFiles: null
+                path: action.payload.path
             };
         case ACTION.END_BROWSE_NEW_FILES_FAIL:
             return {
                 ...state,
-                files: [],
-                serverUpdatedFiles: null
+                files: []
             };
         case ACTION.END_PREVIEW_FILE_SUCCESS:
             if (action.payload.type === FILE_TYPES.IMAGE) {
@@ -85,16 +78,12 @@ export default (state = INITIAL_STATE, action) => {
         case ACTION.END_UPLOAD_FILES:
             return {
                 ...state,
-                isUploading: false,
-                serverUpdatedFiles: {
-                    path: action.payload.path
-                }
+                isUploading: false
             };
         case ACTION.END_UPLOAD_FILES_FAIL:
             return {
                 ...state,
-                isUploading: false,
-                serverUpdatedFiles: null
+                isUploading: false
             };
         case ACTION.AUTHENTICATION_MISSING:
         case ACTION.LOGOUT_SUCCESS:

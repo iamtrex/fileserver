@@ -35,7 +35,7 @@ export const loadDirectory = (dirPath) => {
  * @param dispatch
  * @param dirPath
  */
-const attemptLoadDirectory = (dispatch, dirPath) => {
+export const attemptLoadDirectory = (dispatch, dirPath) => {
     dispatch(SET_LOADING_TRUE_ACTION);
 
     getFilesFromNetwork(dirPath).then((files) => {

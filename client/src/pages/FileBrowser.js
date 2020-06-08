@@ -28,6 +28,7 @@ import CreateFolderDialog from "../components/dialogs/CreateFolderDialog";
 class FileBrowser extends Component {
 
     componentDidMount() {
+        // TODO might be causing double load.
         if (this.props.files === null) { // TODO Might be scary? (Causing infinite loops)
             this.props.loadRootDirectory();
         }
@@ -53,12 +54,6 @@ class FileBrowser extends Component {
 
         if (!this.props.isUserAuthenticated) {
             this.props.navigateTo(PAGES.LOGIN);
-        }
-
-        // If server has updated files, we should update them. // TODO Could this not be done automatically?
-        if (this.props.serverUpdatedFiles && this.props.serverUpdatedFiles.path === this.props.path) {
-            console.log("Server has updated files");
-            this.props.loadDirectory(this.props.path);
         }
 
         const items = this.props.files ? this.props.files.map((file, index) => {
@@ -143,7 +138,6 @@ const mapStateToProps = state => ({
     files: state.FileReducer.files,
     previewingFile: state.FileReducer.previewingFile,
     path: state.FileReducer.path,
-    serverUpdatedFiles: state.FileReducer.serverUpdatedFiles,
     viewMode: state.FileReducer.viewMode
 });
 

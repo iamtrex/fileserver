@@ -2,6 +2,7 @@ import {ACTION} from "../Constants";
 import {createFolder, downloadFile, getThumbnailBase64, uploadFiles} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 import {handleError} from "./ActionOnErrorHandler";
+import {attemptLoadDirectory} from "./FileTreeActions";
 
 export const attemptDownloadFile = (file) => {
     return (dispatch) => {
@@ -65,6 +66,7 @@ export const attemptCreateFolder = (path, name) => {
                     path: path
                 }
             });
+            attemptLoadDirectory(dispatch, path);
         }).catch((error) => {
             handleError(dispatch, error, ACTION.END_CREATE_FOLDER_FAIL);
         });
@@ -85,6 +87,7 @@ export const attemptUploadFile = (path, e) => {
                     path: path
                 }
             });
+            attemptLoadDirectory(dispatch, path);
         }).catch((error) => {
             handleError(dispatch, error, ACTION.END_UPLOAD_FILES_FAIL);
         });
