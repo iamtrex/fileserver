@@ -1,6 +1,7 @@
-import {ACTION, NETWORK_FAIL_REASONS} from "../Constants";
+import {ACTION} from "../Constants";
 import {downloadFile, getThumbnailBase64, uploadFiles} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
+import {handleError} from "./ActionOnErrorHandler";
 
 export const attemptDownloadFile = (file) => {
     return (dispatch) => {
@@ -13,22 +14,7 @@ export const attemptDownloadFile = (file) => {
                 type: ACTION.END_DOWNLOAD_FILE_SUCCESS
             });
         }).catch((error) => {
-            dispatch(SET_LOADING_FALSE_ACTION);
-            if (error === NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING) {
-                dispatch({
-                    type: ACTION.AUTH_REJECTED_FROM_SERVER,
-                    payload: {
-                        error: error
-                    }
-                });
-            } else {
-                dispatch({
-                    type: ACTION.END_DOWNLOAD_FILE_FAIL,
-                    payload: {
-                        error: error
-                    }
-                });
-            }
+            handleError(dispatch, error, ACTION.END_DOWNLOAD_FILE_FAIL);
         });
     }
 };
@@ -63,22 +49,7 @@ export const attemptUploadFile = (path, e) => {
                 }
             });
         }).catch((error) => {
-            console.log("Error", error);
-            if (error === NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING) {
-                dispatch({
-                    type: ACTION.AUTH_REJECTED_FROM_SERVER,
-                    payload: {
-                        error: error
-                    }
-                });
-            } else {
-                dispatch({
-                    type: ACTION.END_UPLOAD_FILES_FAIL,
-                    payload: {
-                        error: error
-                    }
-                });
-            }
+            handleError(dispatch, error, ACTION.END_UPLOAD_FILES_FAIL);
         });
     }
 };

@@ -1,6 +1,7 @@
-import {ACTION, NETWORK_FAIL_REASONS} from "../Constants";
+import {ACTION} from "../Constants";
 import {getFilesFromNetwork} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
+import {handleError} from "./ActionOnErrorHandler";
 
 export const toggleViewMode = (viewMode) => {
     return {
@@ -48,21 +49,6 @@ const attemptLoadDirectory = (dispatch, dirPath) => {
         dispatch(SET_LOADING_FALSE_ACTION);
     }).catch((error) => {
         dispatch(SET_LOADING_FALSE_ACTION);
-
-        if (error === NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING) {
-            dispatch({
-                type: ACTION.AUTH_REJECTED_FROM_SERVER,
-                payload: {
-                    error: error
-                }
-            });
-        } else {
-            dispatch({
-                type: ACTION.END_BROWSE_NEW_FILES_FAIL,
-                payload: {
-                    error: error
-                }
-            });
-        }
+        handleError(dispatch, error, ACTION.END_BROWSE_NEW_FILES_FAIL);
     });
 };

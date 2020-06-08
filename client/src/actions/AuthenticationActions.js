@@ -13,16 +13,10 @@ export const trySignup = (user, pass) => {
             dispatch({
                 type: ACTION.SIGNUP_SUCCESS
             });
-
-            login(user, pass).then(() => {
-                dispatch({
-                    type: ACTION.AUTHENTICATED_WITH_SERVER
-                });
-            }).catch((error) => {
-                dispatch({
-                    type: ACTION.AUTH_REJECTED_FROM_SERVER
-                });
+            dispatch({
+                type: ACTION.AUTHENTICATED_WITH_SERVER
             });
+            dispatch(navigateTo(PAGES.FILE_BROWSER));
         }).catch((error) => {
             dispatch({
                 type: ACTION.SIGNUP_FAILURE

@@ -9,7 +9,7 @@ export const FileThumbItem = (props) => {
     return <Card>
         <ScrollTrigger onEnter={props.loadThumbnail}>
             {props.i.thumbnailSrc ?
-                <Card.Img varient={"top"} src={props.i.thumbnailSrc} />
+                <Card.Img varient={"top"} src={props.i.thumbnailSrc}/>
                 : null}
         </ScrollTrigger>
 

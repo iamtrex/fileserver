@@ -3,7 +3,7 @@ import styles from "../../style/Previewer.less";
 import React, {Component} from "react"
 
 import {connect} from "react-redux"
-import {Button, Dimmer, Image, Loader} from 'semantic-ui-react'
+import {Button, Dimmer, Loader} from 'semantic-ui-react'
 import {FILE_TYPES, PAGES} from "../../Constants";
 import {ImagePreviewer} from "../previewers/ImagePreviewer";
 import {VideoPreviewer} from "../previewers/VideoPreviewer";

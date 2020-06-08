@@ -3,7 +3,6 @@ package com.rweqx.authentication;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.rweqx.constants.AuthConstants;
-import com.rweqx.rest.RestLogin;
 import com.rweqx.sql.SecureStore;
 import com.rweqx.utils.PropertyUtils;
 
@@ -16,11 +15,10 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.*;
 import javax.ws.rs.ext.Provider;
-import java.awt.*;
 import java.io.IOException;
 import java.security.Principal;
-import java.security.Security;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Secured

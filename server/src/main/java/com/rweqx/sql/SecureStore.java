@@ -1,7 +1,5 @@
 package com.rweqx.sql;
 
-import com.rweqx.authentication.AuthorizationRoles;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -9,7 +7,6 @@ import java.security.SecureRandom;
 import java.sql.*;
 import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class SecureStore {
@@ -65,6 +62,7 @@ public class SecureStore {
 
     /**
      * Check if username/password combination exists in our DB.
+     *
      * @return - true if valid username password combination.
      */
     public boolean isValidUser(final String username, final String password) {
@@ -96,6 +94,7 @@ public class SecureStore {
 
     /**
      * Saves the user with salted password into database.
+     *
      * @param username
      * @param password
      * @return
@@ -135,6 +134,7 @@ public class SecureStore {
 
     /**
      * Get User's unique id key from username.
+     *
      * @return
      */
     public String getUserKey(final String username) {
@@ -188,7 +188,6 @@ public class SecureStore {
     }
 
     /**
-     *
      * @param userKey
      * @param uuid
      * @param expMillis
@@ -248,7 +247,7 @@ public class SecureStore {
                     "DELETE FROM " + SESSION_TABLE + " WHERE session_id = ?");
             statement.setString(1, sessionId);
             statement.executeQuery();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -263,7 +262,7 @@ public class SecureStore {
                     "DELETE FROM " + SESSION_TABLE + " WHERE user_key = ?");
             statement.setString(1, userKey);
             statement.execute();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

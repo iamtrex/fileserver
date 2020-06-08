@@ -1,6 +1,5 @@
 package com.rweqx.rest;
 
-import com.google.gson.JsonObject;
 import com.rweqx.authentication.AllowCookieAuthentication;
 import com.rweqx.authentication.Secured;
 import com.rweqx.constants.AuthConstants;

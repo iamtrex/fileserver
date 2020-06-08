@@ -1,6 +1,6 @@
 import {Redirect} from "react-router";
 import {PAGES} from "../Constants";
-import React, {Component} from "react"
+import React from "react"
 
 export const navigator = (expectedPage, currentPage) => {
     if (expectedPage === currentPage) {

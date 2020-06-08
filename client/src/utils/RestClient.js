@@ -1,6 +1,10 @@
 import $ from "jquery";
 
 import {NETWORK_FAIL_REASONS} from "../Constants";
+/*
+ * Function collection that handles all communciation with Java server.
+ * Only src tags like those in videos and image sources hit the server directly.
+ */
 
 export const getFilesFromNetwork = (pathUrl) => {
     pathUrl = pathUrl ? pathUrl : "";
@@ -17,32 +21,8 @@ export const getFilesFromNetwork = (pathUrl) => {
     });
 };
 
-const defaultHandleError = (reject, response) => {
-    console.log(response);
-    if (response.status === 401) {
-        // Delete cookies and token since if they exist, they are invalid.
-        document.cookie = "session-id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-        window.localStorage.removeItem("token");
-
-        // Should re-route to login page.
-        reject(NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING);
-    }
-    reject(NETWORK_FAIL_REASONS.OTHER);
-};
-
 export const getImageSourcePath = (file) => {
     return "rest/file?path=" + file.pathUrl;
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            type: "GET",
-            headers: getHeaders(),
-            url: "rest/file?path=" + file.pathUrl,
-            success: data => {
-                return resolve("data:image/png;base64," + data);
-            },
-            error: response => defaultHandleError(reject, response)
-        });
-    });
 };
 
 export const getVideoSourcePath = (file) => {
@@ -81,21 +61,14 @@ export const login = (user, pass) => {
             url: "rest/login",
             data: $.param({"username": user, "password": pass}),
             success: (response) => {
-                let token = response.token;
-                if (!token) {
-                    defaultHandleError(reject, "No token returned");
-                }
-
-                window.localStorage.setItem("token", token);
-                resolve();
+                processLoginResult(resolve, reject, response);
             },
             error: response => defaultHandleError(reject, response)
         });
-
     });
 };
 
-export const logout = (s) => {
+export const logout = () => {
     return new Promise((resolve, reject) => {
         $.ajax({
             type: "GET",
@@ -112,7 +85,6 @@ export const logout = (s) => {
 
 export const signup = (user, pass) => {
     return new Promise((resolve, reject) => {
-        console.log("Attempting signup with ", user, " ", pass);
         $.ajax({
             type: "POST",
             contentType: "application/json",
@@ -121,12 +93,11 @@ export const signup = (user, pass) => {
                 "password": pass
             }),
             url: "rest/signup",
-            success: (result) => {
-                resolve();
+            success: (response) => {
+                processLoginResult(resolve, reject, response);
             },
             error: response => defaultHandleError(reject, response)
         });
-
     });
 };
 
@@ -145,11 +116,12 @@ export const checkServerSession = () => {
     });
 };
 
-//TODO SHOULD THIS PLACE SPLIT THE PROMISES OR SHOULD THE ACTION SPLIT IT?
+// TODO SHOULD THIS PLACE SPLIT THE PROMISES OR SHOULD THE ACTION SPLIT IT?
+// TODO - handle errors?
 export const uploadFiles = (files, path) => {
     return new Promise((resolve, reject) => {
         let promises = [];
-        for(let i=0; i<files.length; i++){
+        for (let i = 0; i < files.length; i++) {
             let file = files[i];
             promises.push(new Promise((resolve, reject) => {
                 const data = new FormData();
@@ -178,4 +150,28 @@ const getHeaders = () => {
     }
 
     return headers;
+};
+
+const defaultHandleError = (reject, response) => {
+    console.log(response);
+    if (response.status === 401) {
+        // Delete cookies and token since if they exist, they are invalid.
+        document.cookie = "session-id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+        window.localStorage.removeItem("token");
+
+        // Should re-route to login page.
+        reject(NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING);
+    }
+    reject(NETWORK_FAIL_REASONS.OTHER);
+};
+
+const processLoginResult = (resolve, reject, response) => {
+    let token = response.token;
+    if (!token) {
+        defaultHandleError(reject, "No token returned");
+    }
+
+    // Store JWT token.
+    window.localStorage.setItem("token", token);
+    resolve();
 };

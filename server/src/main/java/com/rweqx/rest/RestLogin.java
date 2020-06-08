@@ -4,17 +4,22 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.rweqx.authentication.Secured;
 import com.rweqx.constants.AuthConstants;
 import com.rweqx.exceptions.AuthenticationException;
 import com.rweqx.exceptions.ServerException;
+import com.rweqx.files.FileBrowserService;
 import com.rweqx.sql.SecureStore;
 import com.rweqx.utils.PropertyUtils;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -32,31 +37,50 @@ public class RestLogin {
     @Inject
     private SecureStore secureStore;
 
+    @Inject
+    private FileBrowserService fileService;
+
     @POST
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response authenticateUser(@FormParam("username") String username,
+    public Response login(@FormParam("username") String username,
                                      @FormParam("password") String password) {
         LOGGER.severe("Username and password are " + username + " " + password);
         try {
             authenticate(username, password);
-            String token = issueToken(username);
-            JsonObject object = new JsonObject();
-            object.addProperty("token", token);
+            return generatedAuthenticatedResponse(username);
 
-            LOGGER.severe("Successfully logged in :)");
-
-            String userKey = secureStore.getUserKey(username);
-            String sessionId = issueSessionId(userKey);
-
-            return Response.ok(object.toString())
-                    // Setting cookie via header method to include sameSite=strict.
-                    .header("Set-Cookie", AuthConstants.SESSION_ID_TOKEN + "=" + sessionId + "; HttpOnly; SameSite=strict")
-                    .build();
         } catch (Exception e) {
-            return Response.status(Response.Status.FORBIDDEN).build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
+    }
+
+    /**
+     * Signs up the user by creating appropriate entries and folder structure within the db.
+     * @param json
+     * @return
+     */
+    @PermitAll
+    @Path("/signup")
+    @POST
+    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response signup(String json) {
+        JsonParser parser = new JsonParser();
+        JsonObject obj = parser.parse(json).getAsJsonObject();
+        final String username = obj.get("username").getAsString();
+        final String password = obj.get("password").getAsString();
+
+        boolean success = secureStore.attemptSaveUser(username, password);
+
+        if (success) {
+            fileService.setupUser(secureStore.getUserKey(username));
+
+            return generatedAuthenticatedResponse(username);
+        }
+
+        return Response.status(401, "Failed to create user").build();
     }
 
     // TODO - How should I use this... Should it verify if current cookie(s) are valid too ?? :o
@@ -90,8 +114,26 @@ public class RestLogin {
         }
     }
 
-    private String issueToken(String username) {
+    /**
+     * Builds a response with the proper authentication tokens. Persisting them to the secure store.
+     * @param username - The username to build the authentication for.
+     * @return
+     */
+    private Response generatedAuthenticatedResponse(String username) {
         String userKey = secureStore.getUserKey(username);
+        String token = issueToken(userKey);
+        JsonObject object = new JsonObject();
+        object.addProperty("token", token);
+
+        String sessionId = issueSessionId(userKey);
+
+        return Response.ok(object.toString())
+                // Setting cookie via header method to include sameSite=strict.
+                .header("Set-Cookie", AuthConstants.SESSION_ID_TOKEN + "=" + sessionId + "; HttpOnly; SameSite=strict")
+                .build();
+    }
+
+    private String issueToken(String userKey) {
         long nowMillis = System.currentTimeMillis();
         long expMillis = nowMillis + TIME_TO_EXPIRE_MILLIS;
         Date now = new Date(nowMillis);
