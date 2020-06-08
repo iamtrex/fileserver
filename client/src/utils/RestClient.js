@@ -12,30 +12,41 @@ export const getFilesFromNetwork = (pathUrl) => {
             url: "rest/files?path=" + pathUrl,
             contentType: "application/json",
             success: response => resolve(response.files),
-            error: response => handleError(reject, response)
+            error: response => defaultHandleError(reject, response)
         });
     });
 };
 
-const handleError = (reject, response) => {
+const defaultHandleError = (reject, response) => {
     console.log(response);
+    if (response.status === 401) {
+        // Delete cookies and token since if they exist, they are invalid.
+        document.cookie = "session-id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+        window.localStorage.removeItem("token");
 
-    if (response.status === 403 && response.responseText.includes("Authorization is missing")) {
-        reject(NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING)
+        // Should re-route to login page.
+        reject(NETWORK_FAIL_REASONS.AUTHENTICATION_MISSING);
     }
     reject(NETWORK_FAIL_REASONS.OTHER);
 };
 
 export const getImageSourcePath = (file) => {
     return "rest/file?path=" + file.pathUrl;
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "GET",
+            headers: getHeaders(),
+            url: "rest/file?path=" + file.pathUrl,
+            success: data => {
+                return resolve("data:image/png;base64," + data);
+            },
+            error: response => defaultHandleError(reject, response)
+        });
+    });
 };
 
 export const getVideoSourcePath = (file) => {
     return "rest/stream?path=" + file.pathUrl;
-};
-
-export const getThumbnailPath = (file) => {
-    return "rest/thumbnail?path=" + file.pathUrl; //TODO make these all just take path?
 };
 
 export const getThumbnailBase64 = (path) => {
@@ -47,7 +58,7 @@ export const getThumbnailBase64 = (path) => {
             success: data => {
                 return resolve("data:image/png;base64," + data);
             },
-            error: response => handleError(reject, response)
+            error: response => defaultHandleError(reject, response)
         });
     });
 };
@@ -70,16 +81,15 @@ export const login = (user, pass) => {
             url: "rest/login",
             data: $.param({"username": user, "password": pass}),
             success: (response) => {
-                console.log(response);
                 let token = response.token;
                 if (!token) {
-                    handleError(reject, "No token returned");
+                    defaultHandleError(reject, "No token returned");
                 }
 
                 window.localStorage.setItem("token", token);
                 resolve();
             },
-            error: response => handleError(reject, response)
+            error: response => defaultHandleError(reject, response)
         });
 
     });
@@ -87,17 +97,16 @@ export const login = (user, pass) => {
 
 export const logout = (s) => {
     return new Promise((resolve, reject) => {
-        console.log("Attempting logout");
         $.ajax({
             type: "GET",
             headers: getHeaders(),
             url: "rest/logout",
             success: () => {
+                window.localStorage.removeItem("token");
                 resolve();
             },
-            error: response => handleError(reject, response)
+            error: response => defaultHandleError(reject, response)
         });
-
     });
 };
 
@@ -115,7 +124,7 @@ export const signup = (user, pass) => {
             success: (result) => {
                 resolve();
             },
-            error: response => handleError(reject, response)
+            error: response => defaultHandleError(reject, response)
         });
 
     });
@@ -131,7 +140,7 @@ export const checkServerSession = () => {
             success: () => {
                 resolve();
             },
-            error: response => handleError(reject, response)
+            error: response => defaultHandleError(reject, response)
         });
     });
 };
@@ -154,25 +163,8 @@ export const uploadFiles = (files, path) => {
                 }).then((result) => {
                     resolve();
                 });
-                /*
-                $.ajax({
-                    type: "POST",
-                    headers: {},
-                    url: "rest/upload",
-                    data: JSON.stringify({
-                        "name": file.name,
-                        "fileData": data,
-                        "path": path
-                    }),
-                    success: () => {
-                        resolve();
-                    },
-                    error: response => handleError(reject, response)
-                });*/
-
             }));
         }
-
         Promise.all(promises).then(() => resolve());
     });
 };

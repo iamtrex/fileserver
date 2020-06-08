@@ -1,5 +1,5 @@
 import {ACTION, NETWORK_FAIL_REASONS} from "../Constants";
-import {downloadFile, getThumbnailBase64, getThumbnailPath, uploadFiles} from "../utils/RestClient";
+import {downloadFile, getThumbnailBase64, uploadFiles} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 
 export const attemptDownloadFile = (file) => {
@@ -34,18 +34,8 @@ export const attemptDownloadFile = (file) => {
 };
 
 export const attemptLoadThumbnail = (file) => {
-    /*
-    return {
-        type: ACTION.LOAD_ICON,
-        payload: {
-            src: getThumbnailPath(file),
-            key: file.key
-        }
-    }*/
-
     return (dispatch) => {
         getThumbnailBase64(file.pathUrl).then((data) => {
-            console.log(data);
             dispatch({
                 type: ACTION.LOAD_ICON,
                 payload: {

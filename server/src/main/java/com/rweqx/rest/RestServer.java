@@ -1,6 +1,7 @@
 package com.rweqx.rest;
 
 import com.google.gson.JsonObject;
+import com.rweqx.authentication.AllowCookieAuthentication;
 import com.rweqx.authentication.Secured;
 import com.rweqx.files.FileBrowserService;
 import com.rweqx.streaming.MultipartFileSender;
@@ -48,6 +49,7 @@ public class RestServer {
         return object.toString();
     }
 
+    @AllowCookieAuthentication
     @RolesAllowed("ADMIN")
     @GET
     @Path("/file")
@@ -62,6 +64,7 @@ public class RestServer {
                 .build();
     }
 
+    @AllowCookieAuthentication
     @RolesAllowed("ADMIN")
     @GET
     @Path("/thumbnail")
@@ -99,7 +102,7 @@ public class RestServer {
         return Response.ok().build();
     }
 
-
+    @AllowCookieAuthentication
     @RolesAllowed("ADMIN")
     @GET
     @Path("/stream")

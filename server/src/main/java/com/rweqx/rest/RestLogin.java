@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.google.gson.JsonObject;
 import com.rweqx.authentication.Secured;
+import com.rweqx.constants.AuthConstants;
 import com.rweqx.exceptions.AuthenticationException;
 import com.rweqx.exceptions.ServerException;
 import com.rweqx.sql.SecureStore;
@@ -13,9 +14,9 @@ import com.rweqx.utils.PropertyUtils;
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.util.Date;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 @Path("/")
@@ -25,7 +26,8 @@ public class RestLogin {
     @Inject
     private PropertyUtils properties;
 
-    private final long TIME_TO_EXPIRE_MILLIS = 60 * 60 * 1000; // 1 hour.
+    private final long TIME_TO_EXPIRES_SECONDS = 60 * 60;
+    private final long TIME_TO_EXPIRE_MILLIS = TIME_TO_EXPIRES_SECONDS * 1000; // 1 hour.
 
     @Inject
     private SecureStore secureStore;
@@ -44,10 +46,32 @@ public class RestLogin {
             object.addProperty("token", token);
 
             LOGGER.severe("Successfully logged in :)");
-            return Response.ok(object.toString()).build();
+
+            String userKey = secureStore.getUserKey(username);
+            String sessionId = issueSessionId(userKey);
+
+            return Response.ok(object.toString())
+                    // Setting cookie via header method to include sameSite=strict.
+                    .header("Set-Cookie", AuthConstants.SESSION_ID_TOKEN + "=" + sessionId + "; HttpOnly; SameSite=strict")
+                    .build();
         } catch (Exception e) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+    }
+
+    // TODO - How should I use this... Should it verify if current cookie(s) are valid too ?? :o
+    @GET
+    @Secured
+    @Path("/getSessionIdCookie")
+    @PermitAll
+    public Response getSessionIdCookie(@Context SecurityContext securityContext) {
+        // Issue a new token for the username.
+        final String userKey = securityContext.getUserPrincipal().getName();
+        String sessionId = issueSessionId(userKey);
+        return Response.ok()
+                // Setting cookie via header method to include sameSite=strict.
+                .header("Set-Cookie", AuthConstants.SESSION_ID_TOKEN + "=" + sessionId + "; HttpOnly; SameSite=strict")
+                .build();
     }
 
     @GET
@@ -86,6 +110,13 @@ public class RestLogin {
             //Invalid Signing configuration / Couldn't convert Claims.
             throw new ServerException(500, "Token generation failed");
         }
+    }
+
+    private String issueSessionId(String userKey) {
+        long expMillis = System.currentTimeMillis() + TIME_TO_EXPIRE_MILLIS;
+        String uuid = UUID.randomUUID().toString();
+        secureStore.registerSessionId(userKey, uuid, expMillis);
+        return uuid;
     }
 
 }
