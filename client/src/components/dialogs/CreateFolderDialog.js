@@ -31,7 +31,7 @@ class CreateFolderDialog extends Component {
                        show={this.props.isShow}
                        onHide={this.props.showCreateFolderDialog.bind(this, false)}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Modal heading</Modal.Title>
+                        <Modal.Title>Create a folder in {this.props.path}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Form>

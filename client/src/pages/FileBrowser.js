@@ -24,6 +24,7 @@ import CardColumns from "react-bootstrap/CardColumns";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
 import CreateFolderDialog from "../components/dialogs/CreateFolderDialog";
+import CardDeck from "react-bootstrap/CardDeck";
 
 class FileBrowser extends Component {
 
@@ -42,7 +43,7 @@ class FileBrowser extends Component {
         if (file.type === FILE_TYPES.FOLDER) {
             this.props.loadDirectory(file.pathUrl);
         } else if (file.type === FILE_TYPES.FILE) {
-            this.props.attemptDownloadFile(file);
+            this.props.previewFile(file);
         }
     };
 
@@ -68,7 +69,7 @@ class FileBrowser extends Component {
                 thumbnailSrc: file.thumbnailSrc,
                 selectionOnClick: e => this.clickFile(file),
                 previewOnClick: e => this.props.previewFile(file),
-                downloadOnClick: e => this.clickFile(file)
+                downloadOnClick: e => this.props.attemptDownloadFile(file)
             }
         }).sort((a, b) => {
             if (a.type === FILE_TYPES.FOLDER && b.type !== FILE_TYPES.FOLDER) {
@@ -80,7 +81,7 @@ class FileBrowser extends Component {
             }
         }) : [];
 
-        return <div>
+        return <div className={style.fileRoot}>
             <CreateFolderDialog/>
             <h1>Files</h1>
             {this.props.isLoading ?
@@ -118,12 +119,12 @@ class FileBrowser extends Component {
                         </List> : null
                     }
                     {this.props.viewMode === VIEW_MODE.THUMB ?
-                        <CardColumns className={style.cardColumns}>
+                        <CardDeck className={style.cardColumns}>
                             {items.map((i) => {
                                 return <FileThumbItem i={i}
                                                       loadThumbnail={this.props.attemptLoadThumbnail.bind(this, i)}/>
                             })}
-                        </CardColumns> : null
+                        </CardDeck> : null
                     }
                 </div>
             }

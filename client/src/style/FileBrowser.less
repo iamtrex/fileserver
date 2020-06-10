@@ -2,13 +2,20 @@ h1 {
   font-size: 50px;
 }
 
-.cardColumns {
+.fileRoot {
+  margin: 1em;
+
+  .card {
+    min-width: 20%;
+    .cardImage {
+      width: auto;
+      height: 160px;
+      display: block;
+    }
+  }
 }
 
+
 @media (min-width: 34em) {
-  .cardColumns {
-    -webkit-column-count: 5;
-    -moz-column-count: 5;
-    column-count: 5;
-  }
+
 }

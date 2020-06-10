@@ -27,6 +27,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.logging.Logger;
 
@@ -113,7 +116,8 @@ public class RestServer {
         JsonParser parser = new JsonParser();
         JsonObject obj = parser.parse(json).getAsJsonObject();
         final String type = obj.get("type").getAsString();
-        final String path = obj.get("path").getAsString();
+        // TODO - Should path just be a query param to be in sync with everything else? :o
+        final String path = URLDecoder.decode(obj.get("path").getAsString(), StandardCharsets.UTF_8);
         final String name = obj.get("name").getAsString();
 
         try {

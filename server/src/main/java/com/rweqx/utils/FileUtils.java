@@ -16,7 +16,7 @@ import java.util.*;
 public class FileUtils {
 
     private static final int ICON_SIZE = 50;
-    private static final int THUMB_SIZE = 400;
+    private static final int THUMB_SIZE = 16 * 10; // Size in pixels
 
     private static final Set IMAGE_EXTENSION_SET = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("png", "jpg", "jpeg", "cr2")));
 
@@ -41,7 +41,7 @@ public class FileUtils {
      * @param file
      * @return
      */
-    public static Image getThumnailBase64(File file) {
+    public static Image getThumbnailBase64(File file) {
         BufferedImage image = null;
         if (FileUtils.getFileType(file) == FileType.IMAGE) {
             try {

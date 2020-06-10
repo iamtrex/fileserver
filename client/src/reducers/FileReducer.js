@@ -90,7 +90,11 @@ export default (state = INITIAL_STATE, action) => {
             return INITIAL_STATE;
         case ACTION.LOAD_ICON:
             let files = [...state.files];
-            files[action.payload.key].thumbnailSrc = action.payload.src;
+            // If file still exists in our view - set the thumbnail.
+            let file = files[action.payload.key];
+            if (file) {
+                file.thumbnailSrc = action.payload.src;
+            }
             return {
                 ...state,
                 files: files

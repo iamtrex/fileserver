@@ -39,7 +39,7 @@ public class FileBrowserService {
 
         File file = new File(fullPath);
         if (file.exists()) {
-            return FileUtils.getThumnailBase64(file);
+            return FileUtils.getThumbnailBase64(file);
         } else {
             throw new ServerException(404, "File was not found");
         }

@@ -14,6 +14,7 @@ export const FileListItem = (props) => {
             <List.Content floated={"right"}>
                 <Button onClick={props.i.previewOnClick}>Preview</Button>
                 <Button onClick={props.i.downloadOnClick}>Download</Button>
-            </List.Content> : null}
+            </List.Content> : null
+        }
     </List.Item>
 };
