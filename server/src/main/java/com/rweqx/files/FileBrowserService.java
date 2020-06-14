@@ -1,12 +1,16 @@
 package com.rweqx.files;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.rweqx.authentication.AccessType;
 import com.rweqx.exceptions.ServerException;
+import com.rweqx.sql.SecureStore;
 import com.rweqx.utils.FileUtils;
 import com.rweqx.utils.PropertyUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
+import javax.inject.Inject;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -15,9 +19,13 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
 
 public class FileBrowserService {
+    @Inject
+    private SecureStore secureStore;
+
     private PropertyUtils properties;
 
     private final Logger LOGGER = Logger.getLogger(FileBrowserService.class.getName());
@@ -45,6 +53,12 @@ public class FileBrowserService {
         }
     }
 
+    /**
+     * Gets the file or throws 403 or 404 if user has no access to file or path is bad.
+     * @param userKey
+     * @param filePath
+     * @return
+     */
     public File getFile(String userKey, String filePath) {
         LOGGER.info("Getting file with path - " + filePath);
 
@@ -81,7 +95,7 @@ public class FileBrowserService {
             Path path = f.toPath();
             JsonArray array = Arrays.asList(f.list())
                     .parallelStream()
-                    .map(s -> path.resolve(s))
+                    .map(path::resolve)
                     .map(p -> convertToObject(p, userKey))
                     .collect(
                             JsonArray::new,
@@ -225,5 +239,64 @@ public class FileBrowserService {
             return false;
         }
         return true;
+    }
+
+    public File getSharedFile(String userKey, String fileId, AccessType requiredAccessType) {
+        if (!secureStore.isFileSharedWithUser(userKey, fileId, requiredAccessType)) {
+            throw new ServerException(403, "No authorization to access this file");
+        }
+
+        OwnedFile ownedFile = secureStore.getOwnedFileFromId(fileId);
+
+        String fullPath = prependPath(ownedFile.getOwner(), ownedFile.getPath());
+        File file = new File(fullPath);
+
+        if (!file.exists()) {
+            throw new ServerException(500, "File was not found. It may have been lost or corrupted");
+        }
+
+        return file;
+    }
+
+    // TODO - Need to elaborate behaviour of updating sharing or etc.
+    //      Currently you would be able to share but not unshare.
+
+    /**
+     * Sets sharing permissions for the following users, returning the id.
+     * @param ownerKey - The owner of the file
+     * @param path - Direct path (excluding prepend).
+     * @param configurations
+     * @return
+     */
+    public String shareFileAndGetId(String ownerKey, String path, JsonArray configurations) {
+        // Check if file exists. - getFile asserts file existence or error is thrown.
+        getFile(ownerKey, path);
+
+        String fileId = null;
+
+        for(JsonElement elt : configurations){
+            JsonObject obj = elt.getAsJsonObject();
+            String userKey = obj.get("user").getAsString();
+            long expiresInMillis = obj.get("expiresIn").getAsLong();
+            String expiresAt = String.valueOf(System.currentTimeMillis() + expiresInMillis);
+            AccessType accessType = AccessType.valueOf(obj.get("accessType").getAsString());
+            SharedFile file = new SharedFile(userKey, ownerKey, path, accessType, expiresAt);
+
+            String resolvedFileId = secureStore.shareFile(file);
+
+            if (fileId == null) {
+                fileId = resolvedFileId;
+            } else {
+                if (fileId != resolvedFileId) {
+                    throw new ServerException(500, "Resolved multple fileIds for the path");
+                }
+            }
+        }
+
+        if (fileId == null) {
+            throw new ServerException(500, "Unable to resolve fileId");
+        }
+
+        return fileId;
     }
 }

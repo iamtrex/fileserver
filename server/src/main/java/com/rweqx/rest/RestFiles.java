@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.logging.Logger;
@@ -36,8 +35,8 @@ import java.util.logging.Logger;
 
 @Path("/")
 @Secured
-public class RestServer {
-    private final Logger LOGGER = Logger.getLogger(RestServer.class.getName());
+public class RestFiles {
+    private final Logger LOGGER = Logger.getLogger(RestFiles.class.getName());
 
     @Inject
     private FileBrowserService fileService;
@@ -113,10 +112,9 @@ public class RestServer {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Context SecurityContext securityContext, String json) {
         final String userKey = securityContext.getUserPrincipal().getName();
-        JsonParser parser = new JsonParser();
-        JsonObject obj = parser.parse(json).getAsJsonObject();
+        JsonObject obj = (new JsonParser()).parse(json).getAsJsonObject();
+
         final String type = obj.get("type").getAsString();
-        // TODO - Should path just be a query param to be in sync with everything else? :o
         final String path = URLDecoder.decode(obj.get("path").getAsString(), StandardCharsets.UTF_8);
         final String name = obj.get("name").getAsString();
 

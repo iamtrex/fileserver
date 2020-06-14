@@ -23,10 +23,13 @@ public class RestLogout {
     public Response authenticateUser(@Context SecurityContext securityContext, @CookieParam(AuthConstants.SESSION_ID_TOKEN) Cookie cookie) {
         // Delete session token and stuff from server-side.
         final String userKey = securityContext.getUserPrincipal().getName();
-        secureStore.deleteSessionIdsForUserKey(userKey);
+
+        // Don't want to log out all users - But keep this in the future as a possible flag
+        // secureStore.deleteSessionIdsForUserKey(userKey);
 
         Response.ResponseBuilder builder = Response.ok();
         if (cookie != null) {
+            secureStore.deleteSessionId(cookie.getValue());
             NewCookie sessionCookie = new NewCookie(cookie, null, 0, false);
             builder.cookie(sessionCookie);
         }

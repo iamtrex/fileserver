@@ -1,11 +1,17 @@
 package com.rweqx.sql;
 
+import com.rweqx.authentication.AccessType;
+import com.rweqx.exceptions.DatabaseException;
+import com.rweqx.files.OwnedFile;
+import com.rweqx.files.SharedFile;
+import com.rweqx.utils.AuthorizationUtils;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.*;
-import java.util.Base64;
+import java.util.*;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -18,6 +24,8 @@ public class SecureStore {
 
     private final String USER_TABLE = "users";
     private final String SESSION_TABLE = "sessions";
+    private final String SHARE_TABLE = "sharedFiles";
+    private final String FILE_TABLE = "files";
 
     public SecureStore(String db, String user, String pass) {
         try {
@@ -35,23 +43,26 @@ public class SecureStore {
      */
     private void createStore() {
         LOGGER.info("Trying to create tables");
-        PreparedStatement statement;
-        try {
-            statement = connection.prepareStatement(
-                    "CREATE TABLE " + USER_TABLE + " (username VARCHAR(255), password VARCHAR(255), " +
-                            "salt VARCHAR(255), user_key VARCHAR(255))");
-            statement.execute();
+        attemptCreateTable(USER_TABLE + " (username VARCHAR(255), password VARCHAR(255), " +
+                "salt VARCHAR(255), user_key VARCHAR(255))");
+        attemptCreateTable(SESSION_TABLE +
+                        " (user_key VARCHAR(255), session_id VARCHAR(255), expires_at VARCHAR(255))");
+        attemptCreateTable(SHARE_TABLE +
+                " (file_id VARCHAR(255), user_id VARCHAR(255), access_type VARCHAR(255), expires_at VARCHAR(255))");
+        attemptCreateTable(FILE_TABLE + "(file_id VARCHAR(255) NOT NULL PRIMARY KEY, owner VARCHAR(255), file_path VARCHAR(32,672)");
+    }
 
-        } catch (SQLException e) {
-            if (!e.getSQLState().equalsIgnoreCase("X0Y32")) { // Table already created
-                e.printStackTrace();
-            }
-        }
-
+    /**
+     * Attempts to create table.
+     * Ignores table already created error(s).
+     *
+     * // Note - This would be more professional if I passed in the table name and columns as parameters. But I'm too lazy.
+     *
+     * @param tableStatement - The table name with it's columns in sql form.
+     */
+    private void attemptCreateTable(String tableStatement) {
         try {
-            statement = connection.prepareStatement(
-                    "CREATE TABLE " + SESSION_TABLE + " (user_key VARCHAR(255), session_id VARCHAR(255), " +
-                            "expires_at VARCHAR(255))");
+            PreparedStatement statement = connection.prepareStatement("CREATE TABLE " + tableStatement);
             statement.execute();
         } catch (SQLException e) {
             if (!e.getSQLState().equalsIgnoreCase("X0Y32")) { // Table already created
@@ -224,7 +235,7 @@ public class SecureStore {
 
                 long nowMillis = System.currentTimeMillis();
                 long expMillis = Long.parseLong(expiresAt);
-                java.util.Date now = new java.util.Date(nowMillis);
+                java.util.Date now = new Date(nowMillis);
                 java.util.Date exp = new Date(expMillis);
 
                 if (now.after(exp)) {
@@ -241,7 +252,7 @@ public class SecureStore {
         return null;
     }
 
-    private void deleteSessionId(String sessionId) {
+    public void deleteSessionId(String sessionId) {
         try {
             final PreparedStatement statement = connection.prepareStatement(
                     "DELETE FROM " + SESSION_TABLE + " WHERE session_id = ?");
@@ -265,5 +276,176 @@ public class SecureStore {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // TODO probably want to consider what happens if it already exists. How do we update.
+    public String shareFile(SharedFile file) {
+        String fileId = getFileIdFromPath(file.getOwnerKey(), file.getPath());
+
+        try {
+            final PreparedStatement statement = connection.prepareStatement(
+                    "INSERT_INTO " + SHARE_TABLE + " (file_id, user_id, access_type, expires_at) VALUES (?, ?, ?, ?)");
+
+            statement.setString(1, fileId);
+            statement.setString(2, file.getUserKey());
+            statement.setString(3, file.getAccessType().name());
+            statement.setString(4, file.getExpiresAtMillis());
+            return fileId;
+        } catch (SQLException e) {
+            throw new DatabaseException(500, "Unable to share file", e);
+        }
+    }
+
+    /**
+     * Gets a fileId for the file at the given path.
+     * If none exists, creates one and stores it in the db.
+     * @param path
+     * @return
+     */
+    private String getFileIdFromPath(String userKey, String path) {
+        try {
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT file_id FROM" + FILE_TABLE + " WHERE file_path = ? AND owner = ?");
+
+            statement.setString(1, path);
+            statement.setString(2, userKey);
+
+
+            final ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return rs.getString(1);
+            } else {
+                // Generates a random UUID for this file.
+                final String fileId = UUID.randomUUID().toString();
+                registerFileId(fileId, userKey, path);
+                return fileId;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(500, "Failed to get fileId from path");
+        }
+    }
+
+    /**
+     * Gets a fileId for the file at the given path.
+     * If none exists, then throws error.
+     * @param
+     * @return
+     */
+    public OwnedFile getOwnedFileFromId(String fileId) {
+        try {
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT (file_path, owner) FROM" + FILE_TABLE + " WHERE file_id = ?");
+
+            statement.setString(1, fileId);
+
+            final ResultSet rs = statement.executeQuery();
+
+            if (!rs.next()) {
+                throw new DatabaseException(500, "Failed to get path from fileId - does not exist.");
+            }
+
+            String path = rs.getString(1);
+            String owner = rs.getString(2);
+            return new OwnedFile(owner, path);
+        } catch (SQLException e) {
+            throw new DatabaseException(500, "DB Error - Failed to get path from fileId");
+        }
+    }
+
+
+    // TODO - I think I need to mark fileId as the
+    /**
+     * Inserts the fileId for path.
+     * @param fileId
+     * @param path
+     */
+    private void registerFileId(String fileId, String userKey, String path) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO " + FILE_TABLE + " (file_id, owner, file_path) VALUES (?, ?, ?)");
+            statement.setString(1, fileId);
+            statement.setString(2, userKey);
+            statement.setString(3, path);
+
+            int rows = statement.executeUpdate();
+            if (rows != 1) {
+                throw new DatabaseException(500, "Register FileId updated " + rows + " rows");
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException(500, "Register FileId failed" , e);
+        }
+    }
+
+    /**
+     * Gets files shared with the user.
+     * @param userKey
+     * @return List of files (by path)
+     */
+    public List<SharedFile> getSharedFiles(String userKey) {
+        List<SharedFile> result = new ArrayList<>();
+        try {
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT file_id, access_type, expires_at FROM " + SHARE_TABLE + " WHERE user_id = ?");
+            statement.setString(1, userKey);
+
+            final ResultSet rs = statement.executeQuery();
+            while(rs.next()) {
+                String fileId = rs.getString(1);
+                OwnedFile ownedFile = getOwnedFileFromId(fileId);
+
+                String owner = ownedFile.getOwner();
+                String path = ownedFile.getPath();
+                AccessType accessType = AccessType.valueOf(rs.getString(2));
+                String expiresAtMillis = rs.getString(3);
+
+                result.add(new SharedFile(userKey, owner, path, accessType, expiresAtMillis));
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException(500, "Failed to get shared files", e);
+        }
+        return result;
+    }
+
+    // TODO - Better to make this throw errors?
+    /**
+     * Returns file path for the corresponding fileId if it's been shared.
+     * throws
+     * @param userKey
+     * @param requiredAccessType
+     * @param fileId
+     * @return
+     */
+    public boolean isFileSharedWithUser(String userKey, String fileId, AccessType requiredAccessType) {
+        try {
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT FROM " + SHARE_TABLE +
+                            " (access_type, expires_at) WHERE file_id = ? AND user_id = ?");
+
+            statement.setString(1, fileId);
+            statement.setString(2, userKey);
+
+            final ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                AccessType userAccessType = AccessType.valueOf(rs.getString(1));
+                if (!AuthorizationUtils.hasAccessRights(requiredAccessType, userAccessType)) {
+                    continue;
+                }
+
+                Date current = new Date(System.currentTimeMillis());
+                Date expires = new Date(Long.valueOf(rs.getString(2)));
+
+                if (current.after(expires)) {
+                    // TOOD - Queue deletion of sharing right from server?
+                    continue;
+                }
+                return true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

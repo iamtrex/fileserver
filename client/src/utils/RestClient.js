@@ -6,7 +6,7 @@ import {CREATE_OBJECT_TYPES, NETWORK_FAIL_REASONS} from "../Constants";
  * Only src tags like those in videos and image sources hit the server directly.
  */
 
-export const getFilesFromNetwork = (pathUrl) => {
+export const getFolderSubcontents = (pathUrl) => {
     pathUrl = pathUrl ? pathUrl : "";
 
     return new Promise((resolve, reject) => {

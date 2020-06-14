@@ -1,5 +1,5 @@
 import {ACTION} from "../Constants";
-import {getFilesFromNetwork} from "../utils/RestClient";
+import {getFolderSubcontents} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 import {handleError} from "./ActionOnErrorHandler";
 
@@ -38,7 +38,7 @@ export const loadDirectory = (dirPath) => {
 export const attemptLoadDirectory = (dispatch, dirPath) => {
     dispatch(SET_LOADING_TRUE_ACTION);
 
-    getFilesFromNetwork(dirPath).then((files) => {
+    getFolderSubcontents(dirPath).then((files) => {
         dispatch({
             type: ACTION.END_BROWSE_NEW_FILES_SUCCESS,
             payload: {
