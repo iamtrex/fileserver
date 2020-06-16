@@ -121,7 +121,7 @@ public class RestFiles {
         try {
             fileService.createObject(userKey, type, path, name);
             return Response.ok().build();
-        } catch(ServerException e) {
+        } catch (ServerException e) {
             return Response.status(e.getCode()).entity(e.getMessage()).build();
         }
     }

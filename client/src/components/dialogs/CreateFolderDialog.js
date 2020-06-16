@@ -22,6 +22,7 @@ class CreateFolderDialog extends Component {
     onSubmit = () => {
         let name = this.inputRef.current.value;
         this.props.createNewFolder(this.props.path, name);
+        this.props.showCreateFolderDialog(false);
     };
 
     render() {
@@ -71,7 +72,7 @@ class CreateFolderDialog extends Component {
 };
 
 const mapStateToProps = state => ({
-    isShow: state.FileReducer.isCreateFolderDialogShowing,
+    isShow: state.UIReducer.isCreateFolderDialogShowing,
     isValid: state.FileReducer.isCreateFolderNameValid,
     isInvalid: state.FileReducer.isCreateFolderNameInvalid,
     files: state.FileReducer.files,

@@ -161,6 +161,43 @@ export const uploadFiles = (files, path) => {
     });
 };
 
+// SHARING
+export const attemptShareFiles = (files, shareProperties) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "POST",
+            headers: getHeaders(),
+            url: "rest/shareFiles",
+            contentType: "application/json",
+            data: JSON.stringify({
+                "filePaths": files.map(f => f.path),
+                "configuration": shareProperties,
+                "shouldReturnShareId": true
+            }),
+            success: (shareIds) => {
+                resolve(shareIds);
+            },
+            error: response => defaultHandleError(reject, response)
+        });
+    });
+};
+
+
+export const getUsers = () => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            type: "GET",
+            headers: getHeaders(),
+            url: "rest/users",
+            success: (users) => {
+                resolve(users);
+            },
+            error: response => defaultHandleError(reject, response)
+        });
+    });
+};
+
+
 const getHeaders = () => {
     let headers = {};
 

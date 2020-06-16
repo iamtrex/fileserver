@@ -12,16 +12,14 @@ import java.util.logging.Logger;
  * Handles reading the properties of the server.
  */
 public class PropertyUtils {
+    private static final Logger LOGGER = Logger.getLogger(PropertyUtils.class.getName());
     private final String PROPERTIES_FILE = "ServerConfigurations.properties";
     private final Properties properties;
-
     private final String SECRET_KEY;
     private final String SERVER_ROOT;
     private final String ISSUER;
-
     private final List<String> MANDATORY_PROPERTIES;
 
-    private static final Logger LOGGER = Logger.getLogger(PropertyUtils.class.getName());
     public PropertyUtils() throws ServerException {
         properties = new Properties();
 
@@ -64,9 +62,11 @@ public class PropertyUtils {
     public String getSecretKey() {
         return this.SECRET_KEY;
     }
+
     public String getFileServerRoot() {
         return this.SERVER_ROOT;
     }
+
     public String getIssuer() {
         return this.ISSUER;
     }

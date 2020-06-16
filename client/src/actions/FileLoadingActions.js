@@ -35,15 +35,6 @@ export const attemptLoadThumbnail = (file) => {
 
 };
 
-export const showCreateFolderDialog = (show) => {
-    return {
-        type: ACTION.SHOW_CREATE_FOLDER_DIALOG,
-        payload: {
-            show: show
-        }
-    }
-};
-
 export const onCreateFolderNameChange = (isValid) => {
     return {
         type: ACTION.CREATE_FOLDER_NAME_CHANGE,

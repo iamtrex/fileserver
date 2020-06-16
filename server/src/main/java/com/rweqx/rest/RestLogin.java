@@ -27,13 +27,10 @@ import java.util.logging.Logger;
 @Path("/")
 public class RestLogin {
     private static final Logger LOGGER = Logger.getLogger(RestLogin.class.getName());
-
-    @Inject
-    private PropertyUtils properties;
-
     private final long TIME_TO_EXPIRES_SECONDS = 60 * 60;
     private final long TIME_TO_EXPIRE_MILLIS = TIME_TO_EXPIRES_SECONDS * 1000; // 1 hour.
-
+    @Inject
+    private PropertyUtils properties;
     @Inject
     private SecureStore secureStore;
 
@@ -45,7 +42,7 @@ public class RestLogin {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response login(@FormParam("username") String username,
-                                     @FormParam("password") String password) {
+                          @FormParam("password") String password) {
         LOGGER.severe("Username and password are " + username + " " + password);
         try {
             authenticate(username, password);
@@ -58,6 +55,7 @@ public class RestLogin {
 
     /**
      * Signs up the user by creating appropriate entries and folder structure within the db.
+     *
      * @param json
      * @return
      */
@@ -116,6 +114,7 @@ public class RestLogin {
 
     /**
      * Builds a response with the proper authentication tokens. Persisting them to the secure store.
+     *
      * @param username - The username to build the authentication for.
      * @return
      */

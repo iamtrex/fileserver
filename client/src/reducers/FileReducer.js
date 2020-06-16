@@ -2,16 +2,17 @@ import {ACTION, FILE_TYPES, VIEW_MODE} from "../Constants";
 
 const INITIAL_STATE = Object.freeze({
     files: null,
+    selectedFiles: [],
     path: null,
     isUploading: false,
     previewFile: null,
     viewMode: VIEW_MODE.LIST,
-    showCreateFolderDialog: false,
     isCreateFolderNameValid: false,
     isCreateFolderNameInvalid: false
 });
 
 export default (state = INITIAL_STATE, action) => {
+    let file, files;
     switch (action.type) {
         case ACTION.CREATE_FOLDER_NAME_CHANGE:
             return {
@@ -19,11 +20,7 @@ export default (state = INITIAL_STATE, action) => {
                 isCreateFolderNameValid: action.payload.isValid,
                 isCreateFolderNameInvalid: !action.payload.isValid
             };
-        case ACTION.SHOW_CREATE_FOLDER_DIALOG:
-            return {
-                ...state,
-                isCreateFolderDialogShowing: action.payload.show
-            };
+
         case ACTION.END_CREATE_FOLDER_SUCCESS:
             return {
                 ...state,
@@ -38,12 +35,14 @@ export default (state = INITIAL_STATE, action) => {
             return {
                 ...state,
                 files: action.payload.files,
+                selectedFiles: [],
                 path: action.payload.path
             };
         case ACTION.END_BROWSE_NEW_FILES_FAIL:
             return {
                 ...state,
-                files: []
+                files: [],
+                selectedFiles: []
             };
         case ACTION.END_PREVIEW_FILE_SUCCESS:
             if (action.payload.type === FILE_TYPES.IMAGE) {
@@ -89,9 +88,9 @@ export default (state = INITIAL_STATE, action) => {
         case ACTION.LOGOUT_SUCCESS:
             return INITIAL_STATE;
         case ACTION.LOAD_ICON:
-            let files = [...state.files];
+            files = [...state.files];
             // If file still exists in our view - set the thumbnail.
-            let file = files[action.payload.key];
+            file = files[action.payload.key];
             if (file) {
                 file.thumbnailSrc = action.payload.src;
             }
@@ -104,6 +103,28 @@ export default (state = INITIAL_STATE, action) => {
                 ...state,
                 viewMode: action.payload.viewMode
             };
+        case ACTION.TOGGLE_FILE_SELECTED:
+            let i = action.payload.fileIndex;
+            files = [...state.files];
+            file = state.files[i];
+
+            if (file) {
+                file.selected = !file.selected;
+            }
+
+            let selectedFiles = state.selectedFiles;
+            let index = selectedFiles.indexOf(i);
+            if (index !== -1) {
+                selectedFiles.splice(index, 1);
+            } else {
+                selectedFiles.push(i);
+            }
+
+            return {
+                ...state,
+                files: files,
+                selectedFiles: selectedFiles
+            }
     }
     return state;
 };

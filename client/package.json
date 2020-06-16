@@ -12,6 +12,7 @@
     "babel-loader": "8.0.6",
     "babel-plugin-named-asset-import": "^0.3.6",
     "babel-preset-react-app": "^9.1.2",
+    "bootstrap": "^4.5.0",
     "camelcase": "^5.2.0",
     "case-sensitive-paths-webpack-plugin": "2.2.0",
     "css-loader": "^3.5.3",
@@ -75,6 +76,8 @@
     "workbox-webpack-plugin": "4.3.1"
   },
   "scripts": {
+    "build-dev": "node scripts/buildDev.js",
+    "build-dev-and-copy": "npm run build-dev && npm run copy",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "copy": "Xcopy /E /I /Y build C:\\apache\\webapps\\ROOT",
@@ -148,5 +151,8 @@
     "presets": [
       "react-app"
     ]
+  },
+  "devDependencies": {
+    "rewire": "^5.0.0"
   }
 }

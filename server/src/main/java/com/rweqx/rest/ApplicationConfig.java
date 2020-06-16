@@ -3,6 +3,7 @@ package com.rweqx.rest;
 
 import com.rweqx.authentication.AuthenticationFilter;
 import com.rweqx.files.FileBrowserService;
+import com.rweqx.files.UserManagementService;
 import com.rweqx.sql.SecureStore;
 import com.rweqx.utils.PropertyUtils;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
@@ -17,6 +18,10 @@ import javax.ws.rs.ApplicationPath;
  */
 @ApplicationPath("rest")
 public class ApplicationConfig extends ResourceConfig {
+    // TODO - probably want to secure the DB? :)
+    private final String DB = "jdbc:derby:db;create=true";
+    private final String USER = "";
+    private final String PASS = "";
     public ApplicationConfig() {
         register(new ApplicationBinder());
         register(AuthenticationFilter.class);
@@ -26,12 +31,6 @@ public class ApplicationConfig extends ResourceConfig {
 
     }
 
-
-    // TODO - probably want to secure the DB? :)
-    private final String DB = "jdbc:derby:db;create=true";
-    private final String USER = "";
-    private final String PASS = "";
-
     private class ApplicationBinder extends AbstractBinder {
         @Override
         protected void configure() {
@@ -39,6 +38,7 @@ public class ApplicationConfig extends ResourceConfig {
             bind(properties).to(PropertyUtils.class);
             bind(new SecureStore(DB, USER, PASS)).to(SecureStore.class);
             bind(new FileBrowserService(properties)).to(FileBrowserService.class);
+            bind(new UserManagementService()).to(UserManagementService.class);
         }
     }
 }

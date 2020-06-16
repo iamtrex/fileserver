@@ -15,21 +15,21 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class FileBrowserService {
+    private final Logger LOGGER = Logger.getLogger(FileBrowserService.class.getName());
     @Inject
     private SecureStore secureStore;
-
     private PropertyUtils properties;
-
-    private final Logger LOGGER = Logger.getLogger(FileBrowserService.class.getName());
-
     private String root;
 
     public FileBrowserService(PropertyUtils properties) {
@@ -55,6 +55,7 @@ public class FileBrowserService {
 
     /**
      * Gets the file or throws 403 or 404 if user has no access to file or path is bad.
+     *
      * @param userKey
      * @param filePath
      * @return
@@ -182,7 +183,7 @@ public class FileBrowserService {
             throw new ServerException(403, "Invalid path " + objectPath);
         }
 
-        switch(type) {
+        switch (type) {
             case "FOLDER":
                 createFolder(fullPath);
                 break;
@@ -263,8 +264,9 @@ public class FileBrowserService {
 
     /**
      * Sets sharing permissions for the following users, returning the id.
-     * @param ownerKey - The owner of the file
-     * @param path - Direct path (excluding prepend).
+     *
+     * @param ownerKey       - The owner of the file
+     * @param path           - Direct path (excluding prepend).
      * @param configurations
      * @return
      */
@@ -274,7 +276,7 @@ public class FileBrowserService {
 
         String fileId = null;
 
-        for(JsonElement elt : configurations){
+        for (JsonElement elt : configurations) {
             JsonObject obj = elt.getAsJsonObject();
             String userKey = obj.get("user").getAsString();
             long expiresInMillis = obj.get("expiresIn").getAsLong();
@@ -298,5 +300,31 @@ public class FileBrowserService {
         }
 
         return fileId;
+    }
+
+    /**
+     * TODO - Keeping this in FBS rather than RestShare because there probably needs be optimization for this or
+     * I'd assume the sharing performance is trash once the number of files gets too huge.
+     *
+     * @param userKey
+     * @param filePaths
+     * @param configurations
+     * @return
+     */
+    public List<String> shareFilesAndGetId(String userKey, JsonArray filePaths, JsonArray configurations) {
+
+        List<String> ids = new ArrayList<>();
+        for (JsonElement elt : filePaths) {
+            String path = elt.getAsString();
+            String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+            ids.add(shareFileAndGetId(userKey, decodedPath, configurations));
+        }
+
+        return ids;
+    }
+
+    public List<String> getAllSharedFiles(String userKey) {
+        List<SharedFile> sharedFiles = secureStore.getSharedFiles(userKey);
+        return sharedFiles.parallelStream().map(SharedFile::getFileId).collect(Collectors.toList());
     }
 }

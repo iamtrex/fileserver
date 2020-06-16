@@ -27,27 +27,20 @@ import java.util.logging.Logger;
 public class AuthenticationFilter implements ContainerRequestFilter {
 
     private static final Logger LOGGER = Logger.getLogger(AuthenticationFilter.class.getName());
-
+    private static final String AUTHENTICATION_SCHEME = "Bearer";
+    private final String REALM = "FileServer"; //TODO remove.
     @Inject
     private SecureStore secureStore;
-
     @Context
     private ResourceInfo resourceInfo;
-
     @Context
     private HttpServletRequest request;
-
     @Inject
     private PropertyUtils properties;
 
-
-    private final String REALM = "FileServer"; //TODO remove.
-
-    private static final String AUTHENTICATION_SCHEME = "Bearer";
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        Map<String, Cookie> cookies  = requestContext.getCookies();
+        Map<String, Cookie> cookies = requestContext.getCookies();
         Cookie cookie = cookies.get(AuthConstants.SESSION_ID_TOKEN);
 
         // Bind annotation to ignore cookie authentication method.
@@ -105,8 +98,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         // The WWW-Authenticate header is sent along with the response
 
         Response.ResponseBuilder builder = Response.status(Response.Status.UNAUTHORIZED)
-                        .header(HttpHeaders.WWW_AUTHENTICATE,
-                                AUTHENTICATION_SCHEME + " realm=\"" + REALM + "\"");
+                .header(HttpHeaders.WWW_AUTHENTICATE,
+                        AUTHENTICATION_SCHEME + " realm=\"" + REALM + "\"");
 
         // Delete invalidated cookies if they exist.
         if (cookie != null) {

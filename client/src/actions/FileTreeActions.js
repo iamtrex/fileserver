@@ -1,5 +1,5 @@
 import {ACTION} from "../Constants";
-import {getFolderSubcontents} from "../utils/RestClient";
+import {attemptShareFiles, getFolderSubcontents} from "../utils/RestClient";
 import {SET_LOADING_FALSE_ACTION, SET_LOADING_TRUE_ACTION} from "./HelperActions";
 import {handleError} from "./ActionOnErrorHandler";
 
@@ -9,6 +9,34 @@ export const toggleViewMode = (viewMode) => {
         payload: {
             viewMode: viewMode
         }
+    }
+};
+
+export const toggleFileSelected = (fileIndex) => {
+    return {
+        type: ACTION.TOGGLE_FILE_SELECTED,
+        payload: {
+            fileIndex: fileIndex
+        }
+    }
+};
+
+export const shareFiles = (files, shareProperties) => {
+    return (dispatch) => {
+        dispatch({
+            type: ACTION.START_UPDATE_SHARE
+        });
+        attemptShareFiles(files, shareProperties).then((shareIds) => {
+            console.log(shareIds);
+            dispatch({
+                type: ACTION.END_UPDATE_SHARE_SUCCESS,
+                payload: {
+                    shareIds: shareIds
+                }
+            })
+        }).catch((error) => {
+            handleError(dispatch, error, ACTION.END_UPDATE_SHARE_FAIL);
+        });
     }
 };
 

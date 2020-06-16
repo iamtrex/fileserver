@@ -9,7 +9,7 @@ import {FILE_TYPES} from "../../Constants";
 
 export const FileThumbItem = (props) => {
     return (
-        <Card className={style.card} onClick={props.i.selectionOnClick}>
+        <Card className={style.cardItem} onClick={props.i.selectionOnClick}>
             <ScrollTrigger onEnter={props.loadThumbnail}>
                 {props.i.thumbnailSrc ?
                     <Card.Img className={"mx-auto " + style.cardImage} varient={"top"} src={props.i.thumbnailSrc}/>

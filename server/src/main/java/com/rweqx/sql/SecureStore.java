@@ -4,6 +4,7 @@ import com.rweqx.authentication.AccessType;
 import com.rweqx.exceptions.DatabaseException;
 import com.rweqx.files.OwnedFile;
 import com.rweqx.files.SharedFile;
+import com.rweqx.types.User;
 import com.rweqx.utils.AuthorizationUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -11,8 +12,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class SecureStore {
@@ -20,12 +21,11 @@ public class SecureStore {
     private final String ENCODING_ALGORITHM = "SHA-256";
 
     private final Logger LOGGER = Logger.getLogger(SecureStore.class.getName());
-    private Connection connection;
-
     private final String USER_TABLE = "users";
     private final String SESSION_TABLE = "sessions";
     private final String SHARE_TABLE = "sharedFiles";
     private final String FILE_TABLE = "files";
+    private Connection connection;
 
     public SecureStore(String db, String user, String pass) {
         try {
@@ -46,16 +46,16 @@ public class SecureStore {
         attemptCreateTable(USER_TABLE + " (username VARCHAR(255), password VARCHAR(255), " +
                 "salt VARCHAR(255), user_key VARCHAR(255))");
         attemptCreateTable(SESSION_TABLE +
-                        " (user_key VARCHAR(255), session_id VARCHAR(255), expires_at VARCHAR(255))");
+                " (user_key VARCHAR(255), session_id VARCHAR(255), expires_at VARCHAR(255))");
         attemptCreateTable(SHARE_TABLE +
                 " (file_id VARCHAR(255), user_id VARCHAR(255), access_type VARCHAR(255), expires_at VARCHAR(255))");
-        attemptCreateTable(FILE_TABLE + "(file_id VARCHAR(255) NOT NULL PRIMARY KEY, owner VARCHAR(255), file_path VARCHAR(32,672)");
+        attemptCreateTable(FILE_TABLE + " (file_id VARCHAR(255) NOT NULL, owner VARCHAR(255), file_path VARCHAR(32672), PRIMARY KEY (file_id))");
     }
 
     /**
      * Attempts to create table.
      * Ignores table already created error(s).
-     *
+     * <p>
      * // Note - This would be more professional if I passed in the table name and columns as parameters. But I'm too lazy.
      *
      * @param tableStatement - The table name with it's columns in sql form.
@@ -299,6 +299,7 @@ public class SecureStore {
     /**
      * Gets a fileId for the file at the given path.
      * If none exists, creates one and stores it in the db.
+     *
      * @param path
      * @return
      */
@@ -328,6 +329,7 @@ public class SecureStore {
     /**
      * Gets a fileId for the file at the given path.
      * If none exists, then throws error.
+     *
      * @param
      * @return
      */
@@ -354,8 +356,10 @@ public class SecureStore {
 
 
     // TODO - I think I need to mark fileId as the
+
     /**
      * Inserts the fileId for path.
+     *
      * @param fileId
      * @param path
      */
@@ -372,16 +376,18 @@ public class SecureStore {
                 throw new DatabaseException(500, "Register FileId updated " + rows + " rows");
             }
         } catch (SQLException e) {
-            throw new DatabaseException(500, "Register FileId failed" , e);
+            throw new DatabaseException(500, "Register FileId failed", e);
         }
     }
 
     /**
      * Gets files shared with the user.
+     *
      * @param userKey
      * @return List of files (by path)
      */
     public List<SharedFile> getSharedFiles(String userKey) {
+        Date current = new Date(System.currentTimeMillis());
         List<SharedFile> result = new ArrayList<>();
         try {
             final PreparedStatement statement = connection.prepareStatement(
@@ -389,7 +395,7 @@ public class SecureStore {
             statement.setString(1, userKey);
 
             final ResultSet rs = statement.executeQuery();
-            while(rs.next()) {
+            while (rs.next()) {
                 String fileId = rs.getString(1);
                 OwnedFile ownedFile = getOwnedFileFromId(fileId);
 
@@ -398,7 +404,14 @@ public class SecureStore {
                 AccessType accessType = AccessType.valueOf(rs.getString(2));
                 String expiresAtMillis = rs.getString(3);
 
-                result.add(new SharedFile(userKey, owner, path, accessType, expiresAtMillis));
+                Date expires = new Date(Long.valueOf(expiresAtMillis));
+
+                if (current.after(expires)) {
+                    // TOOD - Queue deletion of sharing right from server?
+                    continue;
+                }
+
+                result.add(new SharedFile(fileId, userKey, owner, path, accessType, expiresAtMillis));
             }
 
         } catch (SQLException e) {
@@ -408,9 +421,11 @@ public class SecureStore {
     }
 
     // TODO - Better to make this throw errors?
+
     /**
      * Returns file path for the corresponding fileId if it's been shared.
      * throws
+     *
      * @param userKey
      * @param requiredAccessType
      * @param fileId
@@ -447,5 +462,22 @@ public class SecureStore {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        try {
+            final PreparedStatement statement = connection.prepareStatement(
+                    "SELECT (user_key, username) FROM " + USER_TABLE);
+            final ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                users.add(new User(rs.getString(1), rs.getString(2)));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
     }
 }

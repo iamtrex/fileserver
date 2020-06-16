@@ -10,15 +10,20 @@ import 'semantic-ui-css/semantic.min.css';
 
 
 const App = () => (
-    <Router>
-        <div className={"router-div"}>
-            <Route exact path={"/"} render={() => <Login/>}/>
-            <Route path={"/login"} render={() => <Login/>}/>
-            <Route path={"/files"} render={() => <FileBrowser/>}/>
-            <Route path={"/signup"} render={() => <Signup/>}/>
-            <Route path={"/preview"} render={() => <Preview/>}/>
+    <>
+        <Router>
+            <div className={"router-div"}>
+                <Route exact path={"/"} render={() => <Login/>}/>
+                <Route path={"/login"} render={() => <Login/>}/>
+                <Route path={"/files"} render={() => <FileBrowser/>}/>
+                <Route path={"/signup"} render={() => <Signup/>}/>
+                <Route path={"/preview"} render={() => <Preview/>}/>
+            </div>
+        </Router>
+        <div className={"footer"}>
+            Icons by <a target="_blank" href="https://icons8.com">Icons8</a>
         </div>
-    </Router>
+    </>
 );
 
 export default App;

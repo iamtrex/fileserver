@@ -14,17 +14,24 @@ import {
     attemptUploadFile,
     browseUp,
     loadDirectory,
+    loadUsers,
     showCreateFolderDialog,
+    showShareFileDialog,
+    toggleFileSelected,
     toggleViewMode,
     tryLogout
 } from "../actions";
 import {navigateTo} from "../actions/NavigationActions";
 import {FileThumbItem} from "../components/listItems/FileThumbItem";
-import CardColumns from "react-bootstrap/CardColumns";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
 import Button from "react-bootstrap/Button";
 import CreateFolderDialog from "../components/dialogs/CreateFolderDialog";
 import CardDeck from "react-bootstrap/CardDeck";
+
+import ShareIcon from "../resources/icons8-share-24.png";
+import MoveIcon from "../resources/icons8-send-file-52.png";
+import CopyIcon from "../resources/icons8-copy-64.png";
+import ShareFileDialog from "../components/dialogs/ShareFileDialog";
 
 class FileBrowser extends Component {
 
@@ -47,6 +54,27 @@ class FileBrowser extends Component {
         }
     };
 
+    handleFileSelectedClick = (evt, file, index) => {
+        this.props.onToggleFileSelected(index);
+        evt.stopPropagation();
+    };
+
+    handleShareClick = () => {
+        if (this.props.users) {
+            this.props.loadUsers();
+        }
+        this.props.showShareDialog();
+    };
+
+    handleMoveClick = () => {
+
+    };
+
+    handleCopyClick = () => {
+
+    };
+
+
     render() {
         let redirect = navigator(this.props.expectedPage, PAGES.FILE_BROWSER);
         if (redirect != null) {
@@ -67,9 +95,11 @@ class FileBrowser extends Component {
                 type: file.type,
                 pathUrl: file.pathUrl,
                 thumbnailSrc: file.thumbnailSrc,
+                selected: !!file.selected,
                 selectionOnClick: e => this.clickFile(file),
                 previewOnClick: e => this.props.previewFile(file),
-                downloadOnClick: e => this.props.attemptDownloadFile(file)
+                downloadOnClick: e => this.props.attemptDownloadFile(file),
+                onCheckClick: e => this.handleFileSelectedClick(e, file, index)
             }
         }).sort((a, b) => {
             if (a.type === FILE_TYPES.FOLDER && b.type !== FILE_TYPES.FOLDER) {
@@ -83,6 +113,7 @@ class FileBrowser extends Component {
 
         return <div className={style.fileRoot}>
             <CreateFolderDialog/>
+            <ShareFileDialog/>
             <h1>Files</h1>
             {this.props.isLoading ?
                 <Dimmer active inverted>
@@ -107,6 +138,20 @@ class FileBrowser extends Component {
                         <Button variant={"secondary"} onClick={this.props.toggleViewMode.bind(this, VIEW_MODE.THUMB)}>Thumbnail
                             View</Button>
                     </ButtonGroup>
+                    <ButtonGroup toggle>
+                        <Button variant={"light"}
+                                disabled={!this.props.selectedFiles.length}
+                                onClick={this.handleShareClick.bind(this)}><img className={style.buttonIcon}
+                                                                                src={ShareIcon}/></Button>
+                        <Button variant={"light"}
+                                disabled={!this.props.selectedFiles.length}
+                                onClick={this.handleMoveClick.bind(this)}><img className={style.buttonIcon}
+                                                                               src={MoveIcon}/></Button>
+                        <Button variant={"light"}
+                                disabled={!this.props.selectedFiles.length}
+                                onClick={this.handleCopyClick.bind(this)}><img className={style.buttonIcon}
+                                                                               src={CopyIcon}/></Button>
+                    </ButtonGroup>
                     <h2>{decodeURIComponent(this.props.path)}</h2>
                     <h2>{this.props.files && this.props.files.length ? (this.props.files.length + " files") : "No files found"}</h2>
                     <input multiple type="file" className="file" id="file-picker" style={{"display": "none"}}
@@ -119,11 +164,16 @@ class FileBrowser extends Component {
                         </List> : null
                     }
                     {this.props.viewMode === VIEW_MODE.THUMB ?
-                        <CardDeck className={style.cardColumns}>
+                        <CardDeck>
                             {items.map((i) => {
                                 return <FileThumbItem i={i}
                                                       loadThumbnail={this.props.attemptLoadThumbnail.bind(this, i)}/>
                             })}
+
+                            { /* Spacer to enforce 4 elements per row on the last row. */
+                                items.length % 4 !== 0 ?
+                                    <div style={{width: 25 * (4 - (items.length % 4)) + "%"}}/> : null
+                            }
                         </CardDeck> : null
                     }
                 </div>
@@ -139,7 +189,9 @@ const mapStateToProps = state => ({
     files: state.FileReducer.files,
     previewingFile: state.FileReducer.previewingFile,
     path: state.FileReducer.path,
-    viewMode: state.FileReducer.viewMode
+    viewMode: state.FileReducer.viewMode,
+    selectedFiles: state.FileReducer.selectedFiles,
+    users: state.UserReducer.users
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -153,7 +205,10 @@ const mapDispatchToProps = dispatch => ({
     tryLogout: () => dispatch(tryLogout()),
     attemptLoadThumbnail: path => dispatch(attemptLoadThumbnail(path)),
     toggleViewMode: viewMode => dispatch(toggleViewMode(viewMode)),
-    showCreateFolderDialog: (show) => dispatch(showCreateFolderDialog(show))
+    showCreateFolderDialog: (show) => dispatch(showCreateFolderDialog(show)),
+    loadUsers: () => dispatch(loadUsers()),
+    showShareDialog: (show) => dispatch(showShareFileDialog(show)),
+    onToggleFileSelected: (index) => dispatch(toggleFileSelected(index))
 });
 
 export default connect(
